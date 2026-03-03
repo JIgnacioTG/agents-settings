@@ -8,9 +8,7 @@
     }
   },
   "permission": {
-    "bash": {
-      "*": "allow"
-    },
+    "bash": "allow",
     "edit": "allow",
     "read": "allow",
     "webfetch": "allow",
