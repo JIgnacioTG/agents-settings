@@ -17,7 +17,11 @@
       "Bash(docker:*)",
       "Bash(git:*)",
       "Bash(openspec:*)",
-      "Bash(make:*)"
+      "Bash(npm:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(make:*)",
+      "WebFetch(domain:*)"
     ],
     "deny": [],
     "ask": [],

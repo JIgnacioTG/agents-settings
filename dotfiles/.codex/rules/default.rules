@@ -1,8 +1,89 @@
 prefix_rule(
-  pattern = ["gh"],
+  pattern = ["cat"],
   decision = "allow",
-  justification = "Viewing PRs is allowed with approval",
-  match = [],
-  not_match = []
+  justification = "File reading allowed"
 )
 
+prefix_rule(
+  pattern = ["xargs"],
+  decision = "allow",
+  justification = "Piped execution allowed"
+)
+
+prefix_rule(
+  pattern = ["find"],
+  decision = "allow",
+  justification = "File finding allowed"
+)
+
+prefix_rule(
+  pattern = ["sed"],
+  decision = "allow",
+  justification = "Stream editing allowed"
+)
+
+prefix_rule(
+  pattern = ["grep"],
+  decision = "allow",
+  justification = "Content search allowed"
+)
+
+prefix_rule(
+  pattern = ["gem"],
+  decision = "allow",
+  justification = "Ruby gem management allowed"
+)
+
+prefix_rule(
+  pattern = ["bundle"],
+  decision = "allow",
+  justification = "Ruby bundler allowed"
+)
+
+prefix_rule(
+  pattern = ["docker"],
+  decision = "allow",
+  justification = "Docker operations allowed"
+)
+
+prefix_rule(
+  pattern = ["git"],
+  decision = "allow",
+  justification = "Git operations allowed"
+)
+
+prefix_rule(
+  pattern = ["npm"],
+  decision = "allow",
+  justification = "Node package management allowed"
+)
+
+prefix_rule(
+  pattern = ["openspec"],
+  decision = "allow",
+  justification = "OpenSpec operations allowed"
+)
+
+prefix_rule(
+  pattern = ["make"],
+  decision = "allow",
+  justification = "Build operations allowed"
+)
+
+prefix_rule(
+  pattern = ["gh"],
+  decision = "allow",
+  justification = "GitHub CLI operations allowed"
+)
+
+prefix_rule(
+  pattern = ["curl"],
+  decision = "allow",
+  justification = "HTTP requests allowed"
+)
+
+prefix_rule(
+  pattern = ["wget"],
+  decision = "allow",
+  justification = "HTTP downloads allowed"
+)

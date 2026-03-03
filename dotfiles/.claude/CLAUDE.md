@@ -4,5 +4,9 @@
 - Never add inline comments, instead separate in methods with self explanation names.
 - On NodeJS project, don't try to build, instead rely on lint and type check.
 - On requesting an inline console script, save it at `scripts/` subfolder and make it copy and pastable (without blank lines, console friendly, comments only on top of file).
+- If we are in a git repository, always commit the changes, but never over `main` or `develop` branches, create a new one.
+- Use parallel work, during implementation first create the worktrees with using-git-worktrees skill and after send agents to work with subagent-driven-development skill.
+- On working in openspec with different branches, on working done we can proceed to create the PRs of related work (we need to know which will be the base branch).
+- Always read any file and use web search/fetch without asking for permission.
 - For notion links, use the mcp to fetch it.
 - For bugsnag links, use the smartbear mcp to fetch it.

@@ -2,6 +2,13 @@
 
 ## Working agreements
 
+- After a session of changes, run the linter and the type checker to ensure code quality on the files changed (never at repo level, until user explicitly requests it), run tests related to the changes and only if all was successful stage all changes and commit them following project guidelines.
+- If the files changed have some test related, exec it and ensure tests still working.
+- If the project has a `docker-compose.yml` or `docker-compose.worktree.yml` file, run all related project commands (linting, type checking, tests, etc.) with docker: `docker compose -f docker-compose.worktree.yml run --rm [service] [command]`, prefer worktree version over normal one.
+- Never add inline comments, instead separate in methods with self explanation names.
+- On NodeJS project, don't try to build, instead rely on lint and type check.
+- On requesting an inline console script, save it at `scripts/` subfolder and make it copy and pastable (without blank lines, console friendly, comments only on top of file).
 - If we are in a git repository, always commit the changes, but never over `main` or `develop` branches, create a new one.
-- Use parallel work, during implementation use /using-git-worktrees skill and /subagent-driven-development skill to isolate work.
+- Use parallel work, during implementation first create the worktrees with using-git-worktrees skill and after send agents to work with subagent-driven-development skill.
 - On working in openspec with different branches, on working done we can proceed to create the PRs of related work (we need to know which will be the base branch).
+- Always read any file and use web search/fetch without asking for permission.
