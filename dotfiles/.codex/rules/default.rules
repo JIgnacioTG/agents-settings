@@ -87,3 +87,5 @@ prefix_rule(
   decision = "allow",
   justification = "HTTP downloads allowed"
 )
+
+prefix_rule(pattern=["gh", "pr"], decision="allow")
