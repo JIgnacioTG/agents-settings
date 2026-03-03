@@ -32,12 +32,13 @@ Single orchestrator command that runs automated multi-stage PR review:
 
 ### Model Mapping
 
-| Claude Code | OpenCode (Codex) |
-|---|---|
-| opus | `gpt-5.3-codex` |
-| sonnet | `gpt-5.3-codex-spark` |
-| haiku | `gpt-5.1-codex-mini` |
-| inherit | (no model field, inherits from parent) |
+All agents use explicit models — no `inherit`.
+
+| Claude Code | OpenCode (Codex) | Used by |
+|---|---|---|
+| opus | `gpt-5.3-codex` | Deep analysis agents (code-reviewer, code-simplifier, issue-validator) |
+| sonnet | `gpt-5.3-codex-spark` | Mid-tier analysis agents (compliance-auditor, comment-analyzer, pr-test-analyzer, silent-failure-hunter, type-design-analyzer) |
+| haiku | `gpt-5.1-codex-mini` | Lightweight agents (pr-triage, config-finder, pr-summarizer) |
 
 ### File Structure
 
@@ -46,10 +47,15 @@ dotfiles/.config/opencode/
 ├── agents/
 │   ├── code-reviewer.md          # General code review (gpt-5.3-codex)
 │   ├── code-simplifier.md        # Simplification (gpt-5.3-codex)
-│   ├── comment-analyzer.md       # Comment accuracy (inherit)
-│   ├── pr-test-analyzer.md       # Test coverage (inherit)
-│   ├── silent-failure-hunter.md  # Error handling (inherit)
-│   └── type-design-analyzer.md   # Type design (inherit)
+│   ├── compliance-auditor.md     # AGENTS.md rule compliance (gpt-5.3-codex-spark)
+│   ├── issue-validator.md        # Validate flagged issues (gpt-5.3-codex)
+│   ├── comment-analyzer.md       # Comment accuracy (gpt-5.3-codex-spark)
+│   ├── pr-test-analyzer.md       # Test coverage (gpt-5.3-codex-spark)
+│   ├── silent-failure-hunter.md  # Error handling (gpt-5.3-codex-spark)
+│   ├── type-design-analyzer.md   # Type design (gpt-5.3-codex-spark)
+│   ├── pr-triage.md              # PR status checks (gpt-5.1-codex-mini)
+│   ├── config-finder.md          # Find AGENTS.md files (gpt-5.1-codex-mini)
+│   └── pr-summarizer.md          # Summarize PR changes (gpt-5.1-codex-mini)
 ├── skills/
 │   ├── code-review/
 │   │   └── SKILL.md              # Automated multi-stage PR review
@@ -72,7 +78,7 @@ description: |
   Use this agent when...
   Examples:
   ...
-model: gpt-5.3-codex   # or omit for inherit
+model: gpt-5.3-codex
 ---
 
 [System prompt body]
@@ -81,7 +87,7 @@ model: gpt-5.3-codex   # or omit for inherit
 ### Adaptation Rules
 
 1. **Frontmatter**: Remove `color` and `allowed-tools` fields (claude-code specific)
-2. **Model**: Map to Codex equivalents per table above; omit `model` field for `inherit`
+2. **Model**: Map to Codex equivalents per table above; all agents get explicit models
 3. **Description examples**: Replace `Task` tool references with `@mention` syntax
 4. **System prompt body**:
    - Replace `CLAUDE.md` → `AGENTS.md` throughout
@@ -91,6 +97,8 @@ model: gpt-5.3-codex   # or omit for inherit
 5. **Agent-specific body** stays largely the same since it's model-agnostic review instructions
 
 ### Agent Details
+
+#### Opus-tier agents (gpt-5.3-codex)
 
 #### code-reviewer.md
 - **Model:** gpt-5.3-codex
@@ -104,29 +112,60 @@ model: gpt-5.3-codex   # or omit for inherit
 - **Focus:** Reduce complexity, eliminate redundancy, improve clarity
 - **Operates:** Autonomously after code is written
 
+#### issue-validator.md
+- **Model:** gpt-5.3-codex
+- **Purpose:** Validate flagged issues from upstream review agents
+- **Mode:** Receives issue description + PR context, confirms or dismisses
+- **Output:** Validated (with evidence) or Dismissed (with reasoning)
+
+#### Sonnet-tier agents (gpt-5.3-codex-spark)
+
+#### compliance-auditor.md
+- **Model:** gpt-5.3-codex-spark
+- **Purpose:** Audit code changes against AGENTS.md rules
+- **Focus:** Match diffs against project-specific configuration rules
+- **Output:** Violations with severity, line refs, and quoted rule
+
 #### comment-analyzer.md
-- **Model:** inherit
+- **Model:** gpt-5.3-codex-spark
 - **Purpose:** Code comment accuracy, completeness, long-term maintainability
 - **Mode:** Advisory only — does not modify code
 - **Output:** Critical Issues, Improvement Opportunities, Recommended Removals
 
 #### pr-test-analyzer.md
-- **Model:** inherit
+- **Model:** gpt-5.3-codex-spark
 - **Purpose:** Test coverage quality and completeness
 - **Focus:** Behavioral coverage over line coverage
 - **Scoring:** Criticality 1-10
 - **Output:** Critical Gaps, Important Improvements, Test Quality Issues
 
 #### silent-failure-hunter.md
-- **Model:** inherit
+- **Model:** gpt-5.3-codex-spark
 - **Purpose:** Error handling and silent failure detection
 - **Severity:** CRITICAL / HIGH / MEDIUM
 - **Focus:** Every try-catch, error callback, fallback logic, optional chaining
 
 #### type-design-analyzer.md
-- **Model:** inherit
+- **Model:** gpt-5.3-codex-spark
 - **Purpose:** Type design quality and invariants
 - **Scoring:** 4 dimensions rated 1-10 (Encapsulation, Invariant Expression, Usefulness, Enforcement)
+
+#### Haiku-tier agents (gpt-5.1-codex-mini)
+
+#### pr-triage.md
+- **Model:** gpt-5.1-codex-mini
+- **Purpose:** Quick PR status checks (draft/closed/already reviewed/trivial)
+- **Output:** Boolean proceed/stop with reason
+
+#### config-finder.md
+- **Model:** gpt-5.1-codex-mini
+- **Purpose:** Find all relevant AGENTS.md files in the repo
+- **Output:** List of file paths
+
+#### pr-summarizer.md
+- **Model:** gpt-5.1-codex-mini
+- **Purpose:** Summarize PR changes concisely
+- **Output:** Brief summary of what changed and why
 
 ## Skill Definitions
 
@@ -135,13 +174,13 @@ model: gpt-5.3-codex   # or omit for inherit
 Automated multi-stage PR review adapted from the `code-review` plugin. Orchestrates a multi-phase review with validation.
 
 **Process:**
-1. **Triage** — Check if PR is draft/closed/already reviewed (use gpt-5.1-codex-mini agent or inline)
-2. **Context gathering** — Find relevant AGENTS.md files in the repo
-3. **PR summary** — Summarize changes (use gpt-5.3-codex-spark agent or inline)
+1. **Triage** — `@pr-triage` checks if PR is draft/closed/already reviewed
+2. **Context gathering** — `@config-finder` finds relevant AGENTS.md files in the repo
+3. **PR summary** — `@pr-summarizer` summarizes changes
 4. **Parallel review** — Launch agents in parallel:
-   - 2x AGENTS.md compliance checks (gpt-5.3-codex-spark)
-   - `@code-reviewer` for bug detection (gpt-5.3-codex)
-5. **Validation** — For each issue found, launch validation subagent to confirm it's real
+   - 2x `@compliance-auditor` for AGENTS.md compliance checks
+   - 2x `@code-reviewer` for bug detection (one diff-only, one introduced code)
+5. **Validation** — `@issue-validator` validates each flagged issue
 6. **Filter** — Remove unvalidated issues
 7. **Output** — Summary to terminal; if `--comment` provided, post GitHub comments
 8. **Inline comments** — Use GitHub MCP for inline PR comments with suggestion blocks
