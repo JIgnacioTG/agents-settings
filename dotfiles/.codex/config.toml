@@ -17,6 +17,9 @@ trust_level = "trusted"
 [projects."/Users/ignacio/Development/Repositories/reserhub-revenue-full"]
 trust_level = "trusted"
 
+[sandbox_workspace_write]
+network_access = true
+
 [tui]
 alternate_screen = "never"
 
