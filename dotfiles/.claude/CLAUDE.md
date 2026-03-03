@@ -1,13 +1,8 @@
-- After a change, run the linter and the type checker to ensure code quality
-- If the files changed have some test related, exec it and ensure tests still working
-- In adara-crm, rubocop linter can run by file using `/home/ignacio/repositories/ruby-lsp/bin/rubocop`, append `-A` to fix issues
-- In adara-crm, when edit and `.erb` file, use erb-formatter with `/home/ignacio/repositories/ruby-lsp/bin/erb-formatter {file} --write --print-width 80`
-- In adara-crm, for rspec use docker `docker compose run --rm crm bundle exec rspec`
-- In adara-crm worktrees, for rspec use `docker compose -f docker-compose.worktree.yml run --rm crm bundle exec rspec`
-- If lint and type check was successful, stage all changes and commit them
-- Never add inline comments, instead separate in methods with self explanation names
-- In sistema project, rubocop linter can run by file using `/home/ignacio/repositories/ruby-lsp/bin/rubocop`, append `-A` to fix issues
-- In sistema project, when edit and `.erb` file, use erb-formatter with `/home/ignacio/repositories/ruby-lsp/bin/erb-formatter {file} --write --print-width 80`
-- In sistema project, for rspec use docker `docker compose run --rm app bundle exec rspec`
+- After a session of changes, run the linter and the type checker to ensure code quality on the files changed (never at repo level, until user explicity request it), run tests related to the changes and only if all was successful stage all changes and commit them following project guidelines.
+- If the files changed have some test related, exec it and ensure tests still working.
+- If the project has a `docker-compose.yml` or `docker-compose.worktree.yml` file, run all related project commands (linting, type checking, tests, etc.) with docker: `docker compose -f docker-compose.worktree.yml run --rm [service] [command]`, prefer worktree version over normal one.
+- Never add inline comments, instead separate in methods with self explanation names.
+- On NodeJS project, don't try to build, instead rely on lint and type check.
+- On requesting an inline console script, save it at `scripts/` subfolder and make it copy and pastable (without blank lines, console friendly, comments only on top of file).
 - For notion links, use the mcp to fetch it.
 - For bugsnag links, use the smartbear mcp to fetch it.
