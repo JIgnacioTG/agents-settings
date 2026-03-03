@@ -9,22 +9,7 @@
   },
   "permission": {
     "bash": {
-      "*": "ask",
-      "cat *": "allow",
-      "xargs *": "allow",
-      "find *": "allow",
-      "sed *": "allow",
-      "grep *": "allow",
-      "gem *": "allow",
-      "bundle *": "allow",
-      "docker *": "allow",
-      "git *": "allow",
-      "npm *": "allow",
-      "openspec *": "allow",
-      "make *": "allow",
-      "gh *": "allow",
-      "curl *": "allow",
-      "wget *": "allow"
+      "*": "allow"
     },
     "edit": "allow",
     "read": "allow",

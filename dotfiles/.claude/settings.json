@@ -5,22 +5,8 @@
   },
   "permissions": {
     "allow": [
-      "Bash(cat:*)",
-      "Bash(xargs cat:*)",
+      "Bash",
       "WebSearch",
-      "Bash(find:*)",
-      "Bash(sed:*)",
-      "Bash(xargs ls:*)",
-      "Bash(grep:*)",
-      "Bash(gem:*)",
-      "Bash(bundle:*)",
-      "Bash(docker:*)",
-      "Bash(git:*)",
-      "Bash(openspec:*)",
-      "Bash(npm:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(make:*)",
       "WebFetch(domain:*)"
     ],
     "deny": [],
