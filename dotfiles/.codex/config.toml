@@ -5,6 +5,9 @@ web_search = "live"
 [features]
 multi_agent = true
 
+[agents]
+max_depth = 4
+
 [projects."/Users/ignacio"]
 trust_level = "trusted"
 
