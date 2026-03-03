@@ -1,0 +1,13 @@
+- After a change, run the linter and the type checker to ensure code quality
+- If the files changed have some test related, exec it and ensure tests still working
+- In adara-crm, rubocop linter can run by file using `/home/ignacio/repositories/ruby-lsp/bin/rubocop`, append `-A` to fix issues
+- In adara-crm, when edit and `.erb` file, use erb-formatter with `/home/ignacio/repositories/ruby-lsp/bin/erb-formatter {file} --write --print-width 80`
+- In adara-crm, for rspec use docker `docker compose run --rm crm bundle exec rspec`
+- In adara-crm worktrees, for rspec use `docker compose -f docker-compose.worktree.yml run --rm crm bundle exec rspec`
+- If lint and type check was successful, stage all changes and commit them
+- Never add inline comments, instead separate in methods with self explanation names
+- In sistema project, rubocop linter can run by file using `/home/ignacio/repositories/ruby-lsp/bin/rubocop`, append `-A` to fix issues
+- In sistema project, when edit and `.erb` file, use erb-formatter with `/home/ignacio/repositories/ruby-lsp/bin/erb-formatter {file} --write --print-width 80`
+- In sistema project, for rspec use docker `docker compose run --rm app bundle exec rspec`
+- For notion links, use the mcp to fetch it.
+- For bugsnag links, use the smartbear mcp to fetch it.

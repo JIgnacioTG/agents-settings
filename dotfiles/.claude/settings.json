@@ -1,0 +1,54 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(xargs cat:*)",
+      "WebSearch",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: resolve deprecation warning for class-level scoping in FolderUserConcept\n\nRails 6.1 no longer inherits scoping from `create` context in class-level methods.\nChanged FolderUserConcept.where to FolderUserConcept.default_scoped.where to\nexplicitly access the full set of models without inherited scoping.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git log:*)",
+      "Bash(docker compose run:*)",
+      "Bash(bundle exec rails runner:*)",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__activate_project",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__get_current_config",
+      "Bash(/home/ignacio/repositories/ruby-lsp/bin/rubocop:*)",
+      "mcp__serena__get_symbols_overview",
+      "WebFetch(domain:github.com)",
+      "Bash(bundle list:*)",
+      "Bash(ruby -e:*)",
+      "Bash(find:*)",
+      "Bash(rails routes:*)",
+      "Bash(sed:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(xargs ls:*)",
+      "Bash(git -C /home/ignacio/repositories/adara-crm log --oneline --all --grep=\"oauth\\|token\")",
+      "Bash(git -C /home/ignacio/repositories/adara-crm log --oneline feat/meta-oauth-form)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(gem list:*)",
+      "Bash(bundle show:*)",
+      "Bash(docker compose:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "bypassPermissions"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "superpowers-chrome@superpowers-marketplace": true
+  },
+  "skipDangerousModePermissionPrompt": true
+}
