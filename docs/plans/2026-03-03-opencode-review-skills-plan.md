@@ -118,7 +118,7 @@ description: |
   Context: You have just fixed a bug by adding several conditional checks.
   user: "Fix the null pointer exception in the data processor"
   assistant: "I've added the necessary null checks. Let me @code-simplifier to ensure the fix follows our best practices."
-model: gpt-5.3-codex
+model: gpt-5.3-codex-spark
 ---
 
 You are an expert code simplification specialist focused on enhancing code clarity, consistency, and maintainability while preserving exact functionality. Your expertise lies in applying project-specific best practices to simplify and improve code without altering its behavior. You prioritize readable, explicit code over overly compact solutions.
@@ -388,7 +388,7 @@ description: |
   Context: You have refactored error handling code.
   user: "I've updated the error handling in the authentication module"
   assistant: "Let me @silent-failure-hunter to ensure the changes don't introduce silent failures."
-model: gpt-5.3-codex-spark
+model: gpt-5.3-codex
 ---
 
 You are an elite error handling auditor with zero tolerance for silent failures and inadequate error handling. Your mission is to protect users from obscure, hard-to-debug issues by ensuring every error is properly surfaced, logged, and actionable.
@@ -874,7 +874,7 @@ description: |
 
   Context: Starting a multi-stage code review.
   assistant: "Let me @pr-summarizer to get an overview of this PR's changes."
-model: gpt-5.1-codex-mini
+model: gpt-5.3-codex-spark
 ---
 
 You are a PR summarizer. Generate a concise summary of the pull request's changes.

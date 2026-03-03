@@ -36,9 +36,9 @@ All agents use explicit models — no `inherit`.
 
 | Claude Code | OpenCode (Codex) | Used by |
 |---|---|---|
-| opus | `gpt-5.3-codex` | Deep analysis agents (code-reviewer, code-simplifier, issue-validator) |
-| sonnet | `gpt-5.3-codex-spark` | Mid-tier analysis agents (compliance-auditor, comment-analyzer, pr-test-analyzer, silent-failure-hunter, type-design-analyzer) |
-| haiku | `gpt-5.1-codex-mini` | Lightweight agents (pr-triage, config-finder, pr-summarizer) |
+| opus | `gpt-5.3-codex` | Deep analysis agents (code-reviewer, issue-validator, silent-failure-hunter) |
+| sonnet | `gpt-5.3-codex-spark` | Mid-tier analysis agents (code-simplifier, compliance-auditor, comment-analyzer, pr-test-analyzer, type-design-analyzer, pr-summarizer) |
+| haiku | `gpt-5.1-codex-mini` | Lightweight agents (pr-triage, config-finder) |
 
 ### File Structure
 
@@ -46,16 +46,16 @@ All agents use explicit models — no `inherit`.
 dotfiles/.config/opencode/
 ├── agents/
 │   ├── code-reviewer.md          # General code review (gpt-5.3-codex)
-│   ├── code-simplifier.md        # Simplification (gpt-5.3-codex)
+│   ├── code-simplifier.md        # Simplification (gpt-5.3-codex-spark)
 │   ├── compliance-auditor.md     # AGENTS.md rule compliance (gpt-5.3-codex-spark)
 │   ├── issue-validator.md        # Validate flagged issues (gpt-5.3-codex)
 │   ├── comment-analyzer.md       # Comment accuracy (gpt-5.3-codex-spark)
 │   ├── pr-test-analyzer.md       # Test coverage (gpt-5.3-codex-spark)
-│   ├── silent-failure-hunter.md  # Error handling (gpt-5.3-codex-spark)
+│   ├── silent-failure-hunter.md  # Error handling (gpt-5.3-codex)
 │   ├── type-design-analyzer.md   # Type design (gpt-5.3-codex-spark)
 │   ├── pr-triage.md              # PR status checks (gpt-5.1-codex-mini)
 │   ├── config-finder.md          # Find AGENTS.md files (gpt-5.1-codex-mini)
-│   └── pr-summarizer.md          # Summarize PR changes (gpt-5.1-codex-mini)
+│   └── pr-summarizer.md          # Summarize PR changes (gpt-5.3-codex-spark)
 ├── skills/
 │   ├── code-review/
 │   │   └── SKILL.md              # Automated multi-stage PR review
@@ -98,7 +98,7 @@ model: gpt-5.3-codex
 
 ### Agent Details
 
-#### Opus-tier agents (gpt-5.3-codex)
+#### Opus-tier agents (gpt-5.3-codex) — deep reasoning
 
 #### code-reviewer.md
 - **Model:** gpt-5.3-codex
@@ -106,19 +106,25 @@ model: gpt-5.3-codex
 - **Scoring:** Confidence 0-100, only reports >= 80
 - **Output:** Issues grouped as Critical (90-100) and Important (80-89)
 
-#### code-simplifier.md
-- **Model:** gpt-5.3-codex
-- **Purpose:** Simplify code while preserving exact functionality
-- **Focus:** Reduce complexity, eliminate redundancy, improve clarity
-- **Operates:** Autonomously after code is written
-
 #### issue-validator.md
 - **Model:** gpt-5.3-codex
 - **Purpose:** Validate flagged issues from upstream review agents
 - **Mode:** Receives issue description + PR context, confirms or dismisses
 - **Output:** Validated (with evidence) or Dismissed (with reasoning)
 
-#### Sonnet-tier agents (gpt-5.3-codex-spark)
+#### silent-failure-hunter.md
+- **Model:** gpt-5.3-codex
+- **Purpose:** Error handling and silent failure detection — requires deep reasoning to catch subtle swallowed errors
+- **Severity:** CRITICAL / HIGH / MEDIUM
+- **Focus:** Every try-catch, error callback, fallback logic, optional chaining
+
+#### Sonnet-tier agents (gpt-5.3-codex-spark) — structured analysis
+
+#### code-simplifier.md
+- **Model:** gpt-5.3-codex-spark
+- **Purpose:** Simplify code while preserving exact functionality — pattern recognition task
+- **Focus:** Reduce complexity, eliminate redundancy, improve clarity
+- **Operates:** Autonomously after code is written
 
 #### compliance-auditor.md
 - **Model:** gpt-5.3-codex-spark
@@ -139,18 +145,17 @@ model: gpt-5.3-codex
 - **Scoring:** Criticality 1-10
 - **Output:** Critical Gaps, Important Improvements, Test Quality Issues
 
-#### silent-failure-hunter.md
-- **Model:** gpt-5.3-codex-spark
-- **Purpose:** Error handling and silent failure detection
-- **Severity:** CRITICAL / HIGH / MEDIUM
-- **Focus:** Every try-catch, error callback, fallback logic, optional chaining
-
 #### type-design-analyzer.md
 - **Model:** gpt-5.3-codex-spark
 - **Purpose:** Type design quality and invariants
 - **Scoring:** 4 dimensions rated 1-10 (Encapsulation, Invariant Expression, Usefulness, Enforcement)
 
-#### Haiku-tier agents (gpt-5.1-codex-mini)
+#### pr-summarizer.md
+- **Model:** gpt-5.3-codex-spark
+- **Purpose:** Summarize PR changes — needs real code comprehension for meaningful summaries
+- **Output:** Structured summary of what changed and why
+
+#### Haiku-tier agents (gpt-5.1-codex-mini) — simple tasks
 
 #### pr-triage.md
 - **Model:** gpt-5.1-codex-mini
@@ -161,11 +166,6 @@ model: gpt-5.3-codex
 - **Model:** gpt-5.1-codex-mini
 - **Purpose:** Find all relevant AGENTS.md files in the repo
 - **Output:** List of file paths
-
-#### pr-summarizer.md
-- **Model:** gpt-5.1-codex-mini
-- **Purpose:** Summarize PR changes concisely
-- **Output:** Brief summary of what changed and why
 
 ## Skill Definitions
 
