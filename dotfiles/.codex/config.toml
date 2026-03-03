@@ -1,0 +1,20 @@
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+
+[features]
+multi_agent = true
+
+[projects."/Users/ignacio"]
+trust_level = "trusted"
+
+[projects."/Users/ignacio/Development/Repositories/reserhub-revenue-full/.git/modules"]
+trust_level = "trusted"
+
+[projects."/Users/ignacio/Development/Repositories/reserhub-revenue-full"]
+trust_level = "trusted"
+
+[tui]
+alternate_screen = "never"
+
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"
