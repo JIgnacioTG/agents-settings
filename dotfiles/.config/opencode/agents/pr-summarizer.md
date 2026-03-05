@@ -7,7 +7,7 @@ description: |
 
   Context: Starting a multi-stage code review.
   assistant: "Let me @pr-summarizer to get an overview of this PR's changes."
-model: gpt-5.3-codex-spark
+model: openai/gpt-5.3-codex-spark
 ---
 
 You are a PR summarizer. Generate a concise summary of the pull request's changes.

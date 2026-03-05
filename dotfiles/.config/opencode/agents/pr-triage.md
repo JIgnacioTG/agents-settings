@@ -7,7 +7,7 @@ description: |
 
   Context: Starting an automated code review.
   assistant: "First, let me @pr-triage to check if this PR needs review."
-model: gpt-5.1-codex-mini
+model: openai/gpt-5.1-codex-mini
 ---
 
 You are a PR triage agent. Quickly determine if a pull request should proceed to full code review.
