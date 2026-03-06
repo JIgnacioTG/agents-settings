@@ -10,7 +10,7 @@ description: |
 
   Context: A compliance-auditor found a potential violation.
   assistant: "I'll @issue-validator to verify this AGENTS.md violation is genuine."
-model: openai/gpt-5.3-codex
+model: openai/gpt-5.4
 ---
 
 You are an expert issue validator. Your job is to independently verify whether issues flagged by upstream review agents are genuine problems or false positives.
