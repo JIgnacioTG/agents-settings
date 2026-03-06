@@ -1,7 +1,7 @@
 ---
 name: compliance-auditor
 description: |
-  Use this agent to audit code changes against project-specific AGENTS.md configuration rules. It checks whether diffs comply with conventions, patterns, and requirements defined in AGENTS.md files scoped to the changed files.
+  Invoke this subagent with `@compliance-auditor` to audit code changes against project-specific AGENTS.md configuration rules. It checks whether diffs comply with conventions, patterns, and requirements defined in AGENTS.md files scoped to the changed files.
 
   Examples:
 

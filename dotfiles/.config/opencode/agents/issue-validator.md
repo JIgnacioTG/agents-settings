@@ -1,7 +1,7 @@
 ---
 name: issue-validator
 description: |
-  Use this agent to validate issues flagged by upstream review agents. It receives a flagged issue with context and independently confirms or dismisses it. Used as a quality gate to filter false positives.
+  Invoke this subagent with `@issue-validator` to validate issues flagged by upstream review agents. It receives a flagged issue with context and independently confirms or dismisses it. Use it as a quality gate to filter false positives.
 
   Examples:
 

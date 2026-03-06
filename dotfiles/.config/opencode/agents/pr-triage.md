@@ -1,7 +1,7 @@
 ---
 name: pr-triage
 description: |
-  Use this agent for quick PR status checks before starting a full review. Checks if the PR is draft, closed, already reviewed, or trivial enough to skip.
+  Invoke this subagent with `@pr-triage` for quick PR status checks before starting a full review. It checks if the PR is draft, closed, already reviewed, or trivial enough to skip.
 
   Examples:
 

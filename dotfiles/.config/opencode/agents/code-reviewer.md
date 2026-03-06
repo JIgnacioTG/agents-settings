@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: |
-  Use this agent when you need to review code for adherence to project guidelines, style guides, and best practices. This agent should be used proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in AGENTS.md. The agent needs to know which files to focus on — in most cases this will be recently completed work which is unstaged in git (retrieved via git diff). Make sure to specify the scope when calling the agent.
+  Invoke this subagent with `@code-reviewer` when you need to review code for adherence to project guidelines, style guides, and best practices. Use it proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in AGENTS.md. The subagent needs to know which files to focus on - in most cases this will be recently completed work which is unstaged in git (retrieved via git diff). Make sure to specify the scope when calling it.
 
   Examples:
 

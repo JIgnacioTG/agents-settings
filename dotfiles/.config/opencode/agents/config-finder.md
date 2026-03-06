@@ -1,7 +1,7 @@
 ---
 name: config-finder
 description: |
-  Use this agent to find all relevant AGENTS.md files in the repository, scoped to the files modified by a PR or changeset.
+  Invoke this subagent with `@config-finder` to find all relevant AGENTS.md files in the repository, scoped to the files modified by a PR or changeset.
 
   Examples:
 

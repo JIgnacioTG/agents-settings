@@ -1,7 +1,7 @@
 ---
 name: pr-summarizer
 description: |
-  Use this agent to generate a concise summary of a pull request's changes. Provides context about what changed and why for downstream review agents.
+  Invoke this subagent with `@pr-summarizer` to generate a concise summary of a pull request's changes. It provides context about what changed and why for downstream review agents.
 
   Examples:
 

@@ -1,7 +1,7 @@
 ---
 name: pr-test-analyzer
 description: |
-  Use this agent when you need to review a pull request or recent changes for test coverage quality and completeness. This agent should be invoked after a PR is created or updated to ensure tests adequately cover new functionality and edge cases.
+  Invoke this subagent with `@pr-test-analyzer` when you need to review a pull request or recent changes for test coverage quality and completeness. Use it after a PR is created or updated to ensure tests adequately cover new functionality and edge cases.
 
   Examples:
 

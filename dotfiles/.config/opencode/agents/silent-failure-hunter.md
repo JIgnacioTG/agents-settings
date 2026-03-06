@@ -1,7 +1,7 @@
 ---
 name: silent-failure-hunter
 description: |
-  Use this agent when reviewing code changes to identify silent failures, inadequate error handling, and inappropriate fallback behavior. Invoke proactively after completing work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors.
+  Invoke this subagent with `@silent-failure-hunter` when reviewing code changes to identify silent failures, inadequate error handling, and inappropriate fallback behavior. Use it proactively after completing work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors.
 
   Examples:
 
