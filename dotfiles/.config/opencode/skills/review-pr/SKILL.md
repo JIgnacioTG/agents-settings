@@ -64,13 +64,13 @@ After agents complete, summarize:
 # PR Review Summary
 
 ## Critical Issues (X found)
-- [agent-name]: Issue description [file:line]
+- [@agent-name]: Issue description [file:line]
 
 ## Important Issues (X found)
-- [agent-name]: Issue description [file:line]
+- [@agent-name]: Issue description [file:line]
 
 ## Suggestions (X found)
-- [agent-name]: Suggestion [file:line]
+- [@agent-name]: Suggestion [file:line]
 
 ## Strengths
 - What's well-done in this PR
