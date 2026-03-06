@@ -24,5 +24,6 @@
     "github@claude-plugins-official": true,
     "superpowers-chrome@superpowers-marketplace": true
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "high"
 }
