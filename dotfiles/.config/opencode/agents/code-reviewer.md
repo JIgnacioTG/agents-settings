@@ -12,6 +12,7 @@ description: |
   Context: You are about to create a PR.
   user: "I think I'm ready to create a PR for this feature"
   assistant: "Before creating the PR, let me @code-reviewer to ensure all code meets our standards."
+mode: subagent
 model: openai/gpt-5.4
 ---
 

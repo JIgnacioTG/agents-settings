@@ -12,6 +12,7 @@ description: |
   Context: You are preparing to create a pull request.
   user: "I think we're ready to create the PR now"
   assistant: "Before creating the PR, let me @comment-analyzer to review all comments we've added or modified."
+mode: subagent
 model: openai/gpt-5.3-codex-spark
 ---
 

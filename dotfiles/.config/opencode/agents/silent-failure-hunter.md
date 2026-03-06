@@ -12,6 +12,7 @@ description: |
   Context: You have refactored error handling code.
   user: "I've updated the error handling in the authentication module"
   assistant: "Let me @silent-failure-hunter to ensure the changes don't introduce silent failures."
+mode: subagent
 model: openai/gpt-5.4
 ---
 

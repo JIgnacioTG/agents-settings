@@ -10,6 +10,7 @@ description: |
 
   Context: A compliance-auditor found a potential violation.
   assistant: "I'll @issue-validator to verify this AGENTS.md violation is genuine."
+mode: subagent
 model: openai/gpt-5.4
 ---
 

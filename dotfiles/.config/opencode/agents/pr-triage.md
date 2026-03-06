@@ -7,6 +7,7 @@ description: |
 
   Context: Starting an automated code review.
   assistant: "First, let me @pr-triage to check if this PR needs review."
+mode: subagent
 model: openai/gpt-5.1-codex-mini
 ---
 

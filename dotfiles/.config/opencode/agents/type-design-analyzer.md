@@ -12,6 +12,7 @@ description: |
   Context: You are creating a pull request with new data model types.
   user: "I'm about to create a PR with several new data model types"
   assistant: "Let me @type-design-analyzer to review all the types being added in this PR."
+mode: subagent
 model: openai/gpt-5.3-codex-spark
 ---
 

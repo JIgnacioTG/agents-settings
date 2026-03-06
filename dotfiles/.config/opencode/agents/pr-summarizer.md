@@ -7,6 +7,7 @@ description: |
 
   Context: Starting a multi-stage code review.
   assistant: "Let me @pr-summarizer to get an overview of this PR's changes."
+mode: subagent
 model: openai/gpt-5.3-codex-spark
 ---
 
