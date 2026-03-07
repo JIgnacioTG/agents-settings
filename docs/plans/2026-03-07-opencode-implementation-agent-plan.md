@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add a single OpenCode implementation agent that executes from approved docs when available, handles clearly straightforward requests directly, triages ambiguity with an explore agent, and escalates non-straightforward work to `writing-plans`.
+**Goal:** Add a single OpenCode implementation agent that executes from approved docs when available, handles clearly straightforward requests directly, triages ambiguity with an explore agent, escalates non-straightforward work to `writing-plans`, and is wired into the OpenCode working agreements for openspec and superpowers-driven implementation tasks.
 
-**Architecture:** Create one new agent definition under `dotfiles/.config/opencode/agents/` using `openai/gpt-5.3-codex-spark`. The prompt should classify requests as documented, straightforward, or unclear, implement only when safe, use explore only for straightforwardness triage, and require targeted verification before claiming completion.
+**Architecture:** Create one new agent definition under `dotfiles/.config/opencode/agents/` using `openai/gpt-5.3-codex-spark`. The prompt should classify requests as documented, straightforward, or unclear, implement only when safe, use explore only for straightforwardness triage, and require targeted verification before claiming completion. Update `dotfiles/.config/opencode/AGENTS.md` so openspec and superpowers implementation flows explicitly pass the approved design doc and task plan to this new subagent in both subagent-driven and parallel-session execution.
 
 **Tech Stack:** Markdown, YAML frontmatter, OpenCode agent format, `rg`, `git`
 
@@ -197,8 +197,45 @@ git commit -m "docs: add implementation agent verification rules"
 ### Task 5: Final review of the new agent contract
 
 **Files:**
+- Modify: `dotfiles/.config/opencode/AGENTS.md`
+- Check: `docs/plans/2026-03-07-opencode-implementation-agent-design.md`
+- Check: `dotfiles/.config/opencode/agents/implementation-agent.md`
+
+**Step 1: Add the new implementation-agent usage rule**
+
+Add a working-agreement bullet to `dotfiles/.config/opencode/AGENTS.md` that makes the orchestration explicit.
+
+Target intent:
+
+```markdown
+- For openspec or superpowers implementation work, use `@implementation-agent` as the code-writing subagent. In both subagent-driven and parallel-session execution, provide the approved design doc and the task plan to the agent before implementation starts.
+```
+
+**Step 2: Keep the existing workflow bullets aligned**
+
+Adjust the existing implementation workflow wording only as needed so it stays consistent with the new rule and still points to `using-git-worktrees` before implementation and `subagent-driven-development` for in-session execution.
+
+**Step 3: Verify the AGENTS.md guidance**
+
+Run: `rg -n "implementation-agent|openspec|superpowers|design doc|task plan|subagent-driven-development|using-git-worktrees" dotfiles/.config/opencode/AGENTS.md`
+
+Expected: the file explicitly mentions `@implementation-agent`, openspec or superpowers implementation work, and the requirement to provide the design doc plus task plan.
+
+**Step 4: Commit the AGENTS.md integration**
+
+```bash
+git add dotfiles/.config/opencode/AGENTS.md
+git commit -m "docs: wire implementation agent into opencode workflow"
+```
+
+---
+
+### Task 6: Final review of the new agent contract
+
+**Files:**
 - Check: `dotfiles/.config/opencode/agents/implementation-agent.md`
 - Check: `docs/plans/2026-03-07-opencode-implementation-agent-design.md`
+- Check: `dotfiles/.config/opencode/AGENTS.md`
 
 **Step 1: Verify the final file contains the expected model and mode**
 
@@ -214,9 +251,9 @@ Expected: the prompt clearly encodes the intake gate, escalation path, and verif
 
 **Step 3: Review the final diff**
 
-Run: `git diff -- dotfiles/.config/opencode/agents/implementation-agent.md docs/plans/2026-03-07-opencode-implementation-agent-design.md docs/plans/2026-03-07-opencode-implementation-agent-plan.md`
+Run: `git diff -- dotfiles/.config/opencode/agents/implementation-agent.md dotfiles/.config/opencode/AGENTS.md docs/plans/2026-03-07-opencode-implementation-agent-design.md docs/plans/2026-03-07-opencode-implementation-agent-plan.md`
 
-Expected: the diff is limited to the new agent contract and the approved design/plan docs.
+Expected: the diff is limited to the new agent contract, the AGENTS.md workflow update, and the approved design/plan docs.
 
 **Step 4: Confirm worktree state**
 
