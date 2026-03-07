@@ -71,16 +71,15 @@ description: |
   Context: The user asked for a small direct code change.
   user: "Add a missing null guard in this helper"
   assistant: "I'll @implementation-agent to handle that directly and run the relevant checks."
-mode: subagent
 model: openai/gpt-5.3-codex-spark
 ---
 ```
 
 **Step 2: Verify the frontmatter fields**
 
-Run: `rg -n "^(name: implementation-agent|mode: subagent|model: openai/gpt-5.3-codex-spark)" dotfiles/.config/opencode/agents/implementation-agent.md`
+Run: `rg -n "^(name: implementation-agent|model: openai/gpt-5.3-codex-spark)" dotfiles/.config/opencode/agents/implementation-agent.md`
 
-Expected: one match for each required field.
+Expected: one match for each required field, and no `mode: subagent` line so the agent remains available for direct use as well as subagent invocation.
 
 **Step 3: Commit the frontmatter scaffold**
 
@@ -122,6 +121,7 @@ Write a body section that says:
 - For `straightforward`, implement directly with minimal exploration.
 - For `unclear`, do not invent a design.
 - Use an explore agent only to answer whether the task is straightforward enough to execute safely.
+- If explore says yes, implement directly with minimal exploration.
 - If the answer is no or uncertain, ask the user whether to create a plan with `writing-plans`.
 - Keep changes scoped to the requested work.
 - If the docs conflict with repository reality, stop and report the mismatch.
@@ -239,9 +239,9 @@ git commit -m "docs: wire implementation agent into opencode workflow"
 
 **Step 1: Verify the final file contains the expected model and mode**
 
-Run: `rg -n "^(name: implementation-agent|mode: subagent|model: openai/gpt-5.3-codex-spark)" dotfiles/.config/opencode/agents/implementation-agent.md`
+Run: `rg -n "^(name: implementation-agent|model: openai/gpt-5.3-codex-spark)" dotfiles/.config/opencode/agents/implementation-agent.md`
 
-Expected: all three fields are present.
+Expected: the file contains the expected name and model fields, and it does not force `mode: subagent` so it stays usable in both direct and subagent flows.
 
 **Step 2: Verify the routing behavior is explicit**
 

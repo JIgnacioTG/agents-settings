@@ -82,6 +82,7 @@ Model choice should remain `openai/gpt-5.3-codex-spark` to favor speed, with rel
 The change should stay small and centered on one new agent definition file.
 
 - A single agent file under `dotfiles/.config/opencode/agents/`
+- No `mode: subagent` restriction, so the agent remains available for both direct use and subagent invocation
 - Explicit role and boundaries for implementation-only work
 - Entry classification rules for documented, straightforward, and unclear requests
 - A narrow fallback that uses an explore agent only for triage
@@ -135,6 +136,7 @@ Mitigation: Define behavior in caller-agnostic terms and avoid examples that ass
 
 - A new implementation agent exists under `dotfiles/.config/opencode/agents/`
 - The agent uses `openai/gpt-5.3-codex-spark`
+- The agent is available for both direct use and `@implementation-agent` invocation
 - The prompt makes implementation its primary responsibility
 - The prompt prefers approved design or plan docs when available
 - The prompt allows direct execution for clearly straightforward tasks

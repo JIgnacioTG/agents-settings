@@ -12,7 +12,6 @@ description: |
   Context: The user asked for a small direct code change.
   user: "Add a missing null guard in this helper"
   assistant: "I'll @implementation-agent to handle that directly and run the relevant checks."
-mode: subagent
 model: openai/gpt-5.3-codex-spark
 ---
 
@@ -32,6 +31,7 @@ Classify each task before acting:
 - For `straightforward`, implement directly with minimal exploration.
 - For `unclear`, do not invent a design.
 - Use an explore agent only to answer whether the task is straightforward enough to execute safely.
+- If explore says yes, implement directly with minimal exploration.
 - If the answer is no or uncertain, ask the user whether to create a plan with `writing-plans`.
 - Keep changes scoped to the requested work.
 - If the docs conflict with repository reality, stop and report the mismatch.
