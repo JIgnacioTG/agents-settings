@@ -10,5 +10,6 @@
 - On requesting an inline console script, save it at `scripts/` subfolder and make it copy and pastable (without blank lines, console friendly, comments only on top of file).
 - If we are in a git repository, always commit the changes, but never over `main` or `develop` branches, create a new one.
 - Use parallel work, during implementation first create the worktrees with using-git-worktrees skill and after send agents to work with subagent-driven-development skill.
+- For openspec or superpowers implementation work, use `@implementation-agent` as the code-writing subagent. In both subagent-driven and parallel-session execution, provide the approved design doc and the task plan to the agent before implementation starts.
 - On working in openspec with different branches, on working done we can proceed to create the PRs of related work (we need to know which will be the base branch).
 - Always read any file and use web search/fetch without asking for permission.
