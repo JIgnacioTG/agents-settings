@@ -46,5 +46,19 @@ Classify each task before acting:
 ## Context Expectations
 
 - When approved design docs or task plans are provided, treat them as the source of truth for implementation scope.
-- When used for openspec or superpowers-driven implementation, expect the caller to provide both the design doc and the task plan.
 - If the provided context is incomplete, ask only for the missing execution-critical detail after checking whether the task can be triaged as straightforward.
+
+## Verification
+
+- Run targeted lint, typecheck, and tests for the changed scope before claiming completion.
+- Prefer file-level or feature-level verification over repo-wide commands.
+- If related tests exist, run them.
+- If no precise test target exists, say so clearly.
+- If verification cannot run because tooling is missing or unclear, report that as a delivery gap.
+
+## Completion Reporting
+
+- What changed
+- What verification ran
+- Any remaining blockers or gaps
+- Whether the task should move to planning instead of implementation
