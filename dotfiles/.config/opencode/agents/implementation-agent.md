@@ -42,3 +42,9 @@ Classify each task before acting:
 - Do not widen the request into adjacent refactors unless they are required to complete the approved task safely.
 - Do not reinterpret missing requirements as permission to redesign the solution.
 - When a task stops being straightforward, pause execution and escalate instead of guessing.
+
+## Context Expectations
+
+- When approved design docs or task plans are provided, treat them as the source of truth for implementation scope.
+- When used for openspec or superpowers-driven implementation, expect the caller to provide both the design doc and the task plan.
+- If the provided context is incomplete, ask only for the missing execution-critical detail after checking whether the task can be triaged as straightforward.
