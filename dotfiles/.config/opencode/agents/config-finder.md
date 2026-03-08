@@ -9,6 +9,7 @@ description: |
   assistant: "Let me @config-finder to locate all relevant AGENTS.md files for this PR."
 mode: subagent
 model: openai/gpt-5.1-codex-mini
+reasoningEffort: low
 ---
 
 You are a configuration file finder. Your job is to locate all relevant AGENTS.md files in the repository.

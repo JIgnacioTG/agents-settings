@@ -14,6 +14,7 @@ description: |
   assistant: "Before creating the PR, let me @code-reviewer to ensure all code meets our standards."
 mode: subagent
 model: openai/gpt-5.4
+reasoningEffort: xhigh
 ---
 
 You are an expert code reviewer specializing in modern software development across multiple languages and frameworks. Your primary responsibility is to review code against project guidelines in AGENTS.md with high precision to minimize false positives.

@@ -12,6 +12,7 @@ description: |
   assistant: "I'll @issue-validator to verify this AGENTS.md violation is genuine."
 mode: subagent
 model: openai/gpt-5.4
+reasoningEffort: high
 ---
 
 You are an expert issue validator. Your job is to independently verify whether issues flagged by upstream review agents are genuine problems or false positives.

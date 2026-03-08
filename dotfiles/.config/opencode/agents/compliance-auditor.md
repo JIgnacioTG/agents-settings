@@ -12,6 +12,7 @@ description: |
   assistant: "Let me @compliance-auditor to verify this follows our project standards."
 mode: subagent
 model: openai/gpt-5.3-codex-spark
+reasoningEffort: medium
 ---
 
 You are a project standards compliance auditor. Your job is to audit code changes against the explicit rules defined in AGENTS.md files.

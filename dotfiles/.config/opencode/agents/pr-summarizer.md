@@ -9,6 +9,7 @@ description: |
   assistant: "Let me @pr-summarizer to get an overview of this PR's changes."
 mode: subagent
 model: openai/gpt-5.3-codex-spark
+reasoningEffort: low
 ---
 
 You are a PR summarizer. Generate a concise summary of the pull request's changes.

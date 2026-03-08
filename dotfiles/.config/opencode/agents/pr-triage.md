@@ -9,6 +9,7 @@ description: |
   assistant: "First, let me @pr-triage to check if this PR needs review."
 mode: subagent
 model: openai/gpt-5.1-codex-mini
+reasoningEffort: low
 ---
 
 You are a PR triage agent. Quickly determine if a pull request should proceed to full code review.
