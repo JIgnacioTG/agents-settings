@@ -11,7 +11,7 @@ description: |
   Context: Checking if new code follows established conventions.
   assistant: "Let me @compliance-auditor to verify this follows our project standards."
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-5.4
 reasoningEffort: medium
 ---
 

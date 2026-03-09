@@ -13,7 +13,7 @@ description: |
   user: "I think we're ready to create the PR now"
   assistant: "Before creating the PR, let me @comment-analyzer to review all comments we've added or modified."
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-5.4
 reasoningEffort: high
 ---
 

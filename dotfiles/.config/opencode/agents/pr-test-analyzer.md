@@ -13,7 +13,7 @@ description: |
   user: "Before I mark this PR as ready, can you double-check the test coverage?"
   assistant: "I'll @pr-test-analyzer to thoroughly review the test coverage before you mark it ready."
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-5.4
 reasoningEffort: high
 ---
 

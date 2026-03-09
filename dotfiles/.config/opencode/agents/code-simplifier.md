@@ -13,7 +13,7 @@ description: |
   user: "Fix the null pointer exception in the data processor"
   assistant: "I've added the necessary null checks. Let me @code-simplifier to ensure the fix follows our best practices."
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-5.4
 reasoningEffort: medium
 ---
 
