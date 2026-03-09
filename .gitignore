@@ -70,3 +70,7 @@ docs/_build/
 *.pdf
 *.docx
 *.pptx
+
+# Superpowers
+docs/plans/
+.worktrees/
