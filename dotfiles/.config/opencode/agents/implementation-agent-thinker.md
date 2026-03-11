@@ -1,21 +1,8 @@
 ---
 name: implementation-agent-thinker
 description: |
-  Use this agent for focused code-writing and implementation work that should follow approved design or task docs when available. It can run as the active agent for a session or be invoked with `@implementation-agent-thinker` as a subagent. The agent may also execute clearly straightforward requests directly, but it should not take over planning or design work. If the task is underspecified, it should first use the `explore` subagent only to determine whether the work is straightforward enough to execute safely, and otherwise ask whether to create a plan with `writing-plans`.
-
-  Examples:
-
-  Context: This agent is active for the session and already has an approved implementation plan.
-  user: "Implement the next task from this plan"
-  assistant: "I will @implementation-agent-thinker implement the approved task, keep the changes scoped, and run the relevant checks before I claim completion."
-
-  Context: The main assistant needs a code-writing subagent for an approved implementation plan.
-  user: "Implement the next task from this plan"
-  assistant: "I'll @implementation-agent-thinker to execute the approved plan and verify the changed scope."
-
-  Context: The user asked for ambiguous or research-heavy implementation work.
-  user: "Implement the next task, but the plan still marks it unknown"
-  assistant: "I'll @implementation-agent-thinker to work through the unknown scope and verify the changed area carefully."
+  Use this agent for focused code-writing and implementation work that should follow approved design or task docs when available. It can run as the active agent for a session or be invoked as a subagent. The agent may also execute clearly straightforward requests directly, but it should not take over planning or design work. If the task is underspecified, it should first use the `explore` subagent only to determine whether the work is straightforward enough to execute safely, and otherwise ask whether to create a plan with `writing-plans`.
+mode: all
 model: openai/gpt-5.4
 reasoningEffort: high
 ---
