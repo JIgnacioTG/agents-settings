@@ -1,17 +1,9 @@
 ---
 name: pr-test-analyzer
 description: |
-  Invoke this subagent with `@pr-test-analyzer` when you need to review a pull request or recent changes for test coverage quality and completeness. Use it after a PR is created or updated to ensure tests adequately cover new functionality and edge cases.
+  Reserved for `/review-pr` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: You have just created a pull request with new functionality.
-  user: "I've created the PR. Can you check if the tests are thorough?"
-  assistant: "I'll @pr-test-analyzer to review the test coverage and identify any critical gaps."
-
-  Context: Reviewing before marking PR as ready.
-  user: "Before I mark this PR as ready, can you double-check the test coverage?"
-  assistant: "I'll @pr-test-analyzer to thoroughly review the test coverage before you mark it ready."
+  Reviews test coverage quality and identifies high-value gaps in the requested diff.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: high

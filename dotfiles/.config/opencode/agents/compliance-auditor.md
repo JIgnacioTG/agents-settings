@@ -1,15 +1,9 @@
 ---
 name: compliance-auditor
 description: |
-  Invoke this subagent with `@compliance-auditor` to audit code changes against project-specific AGENTS.md configuration rules. It checks whether diffs comply with conventions, patterns, and requirements defined in AGENTS.md files scoped to the changed files.
+  Reserved for `/code-review` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: Reviewing a PR for compliance with project rules.
-  assistant: "I'll @compliance-auditor to check this diff against the AGENTS.md rules."
-
-  Context: Checking if new code follows established conventions.
-  assistant: "Let me @compliance-auditor to verify this follows our project standards."
+  Audits changed files against the scoped `AGENTS.md` rules that apply to them.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: medium

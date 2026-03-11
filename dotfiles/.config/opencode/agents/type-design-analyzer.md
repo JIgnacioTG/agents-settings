@@ -1,17 +1,9 @@
 ---
 name: type-design-analyzer
 description: |
-  Invoke this subagent with `@type-design-analyzer` when you need expert analysis of type design in your codebase. Specifically use it: (1) when introducing a new type to ensure it follows best practices for encapsulation and invariant expression, (2) during pull request creation to review all types being added, (3) when refactoring existing types to improve their design quality.
+  Reserved for `/review-pr` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: You are writing code that introduces a new UserAccount type.
-  user: "I've just created a new UserAccount type that handles user authentication and permissions"
-  assistant: "I'll @type-design-analyzer to review the UserAccount type design for strong invariants and proper encapsulation."
-
-  Context: You are creating a pull request with new data model types.
-  user: "I'm about to create a PR with several new data model types"
-  assistant: "Let me @type-design-analyzer to review all the types being added in this PR."
+  Reviews added or changed types for invariant strength and encapsulation quality.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: xhigh

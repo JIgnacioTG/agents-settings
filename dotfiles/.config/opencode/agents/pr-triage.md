@@ -1,12 +1,9 @@
 ---
 name: pr-triage
 description: |
-  Invoke this subagent with `@pr-triage` for quick PR status checks before starting a full review. It checks if the PR is draft, closed, already reviewed, or trivial enough to skip.
+  Reserved for `/code-review` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: Starting an automated code review.
-  assistant: "First, let me @pr-triage to check if this PR needs review."
+  Performs quick PR triage to decide whether a deeper review should proceed.
 mode: subagent
 model: openai/gpt-5.1-codex-mini
 reasoningEffort: low

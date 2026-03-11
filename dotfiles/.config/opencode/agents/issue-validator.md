@@ -1,15 +1,9 @@
 ---
 name: issue-validator
 description: |
-  Invoke this subagent with `@issue-validator` to validate issues flagged by upstream review agents. It receives a flagged issue with context and independently confirms or dismisses it. Use it as a quality gate to filter false positives.
+  Reserved for `/code-review` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: A code-reviewer flagged a potential bug.
-  assistant: "Let me @issue-validator to confirm whether this flagged issue is real."
-
-  Context: A compliance-auditor found a potential violation.
-  assistant: "I'll @issue-validator to verify this AGENTS.md violation is genuine."
+  Validates issues flagged by review agents and filters out false positives.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: high

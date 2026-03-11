@@ -1,17 +1,9 @@
 ---
 name: silent-failure-hunter
 description: |
-  Invoke this subagent with `@silent-failure-hunter` when reviewing code changes to identify silent failures, inadequate error handling, and inappropriate fallback behavior. Use it proactively after completing work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors.
+  Reserved for `/review-pr` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: You have finished implementing a feature with API error handling.
-  user: "I've added error handling to the API client. Can you review it?"
-  assistant: "Let me @silent-failure-hunter to thoroughly examine the error handling in your changes."
-
-  Context: You have refactored error handling code.
-  user: "I've updated the error handling in the authentication module"
-  assistant: "Let me @silent-failure-hunter to ensure the changes don't introduce silent failures."
+  Reviews error handling, fallback behavior, and other silent-failure risks in the requested changes.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: xhigh

@@ -1,12 +1,9 @@
 ---
 name: config-finder
 description: |
-  Invoke this subagent with `@config-finder` to find all relevant AGENTS.md files in the repository, scoped to the files modified by a PR or changeset.
+  Reserved for `/code-review` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: Preparing context for a code review.
-  assistant: "Let me @config-finder to locate all relevant AGENTS.md files for this PR."
+  Finds the `AGENTS.md` files relevant to the requested diff or changeset.
 mode: subagent
 model: openai/gpt-5.1-codex-mini
 reasoningEffort: low

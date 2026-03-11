@@ -1,17 +1,9 @@
 ---
 name: code-reviewer
 description: |
-  Invoke this subagent with `@code-reviewer` when you need to review code for adherence to project guidelines, style guides, and best practices. Use it proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in AGENTS.md. The subagent needs to know which files to focus on - in most cases this will be recently completed work which is unstaged in git (retrieved via git diff). Make sure to specify the scope when calling it.
+  Reserved for `/code-review` and `/review-pr` workflows. Invoke only from those commands.
 
-  Examples:
-
-  Context: You have just implemented a new feature with several files.
-  user: "I've added the new authentication feature. Can you check if everything looks good?"
-  assistant: "I'll @code-reviewer to review your recent changes against project standards."
-
-  Context: You are about to create a PR.
-  user: "I think I'm ready to create a PR for this feature"
-  assistant: "Before creating the PR, let me @code-reviewer to ensure all code meets our standards."
+  Reviews the requested diff for high-signal bugs within the command-defined review scope.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: xhigh

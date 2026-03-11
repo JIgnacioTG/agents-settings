@@ -1,17 +1,9 @@
 ---
 name: comment-analyzer
 description: |
-  Invoke this subagent with `@comment-analyzer` when you need to analyze code comments for accuracy, completeness, and long-term maintainability. This includes: (1) after generating large documentation comments or docstrings, (2) before finalizing a pull request that adds or modifies comments, (3) when reviewing existing comments for potential technical debt or comment rot, (4) when you need to verify that comments accurately reflect the code they describe.
+  Reserved for `/review-pr` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: You are working on a pull request that adds documentation comments.
-  user: "I've added documentation to these functions. Can you check if the comments are accurate?"
-  assistant: "I'll @comment-analyzer to thoroughly review all the comments for accuracy and completeness."
-
-  Context: You are preparing to create a pull request.
-  user: "I think we're ready to create the PR now"
-  assistant: "Before creating the PR, let me @comment-analyzer to review all comments we've added or modified."
+  Reviews code comments for accuracy, completeness, and long-term maintainability.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: high

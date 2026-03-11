@@ -1,12 +1,9 @@
 ---
 name: pr-summarizer
 description: |
-  Invoke this subagent with `@pr-summarizer` to generate a concise summary of a pull request's changes. It provides context about what changed and why for downstream review agents.
+  Reserved for `/code-review` workflows. Invoke only from that command.
 
-  Examples:
-
-  Context: Starting a multi-stage code review.
-  assistant: "Let me @pr-summarizer to get an overview of this PR's changes."
+  Summarizes a pull request or diff for downstream review agents.
 mode: subagent
 model: openai/gpt-5.4
 reasoningEffort: low
