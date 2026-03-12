@@ -1,6 +1,6 @@
 ---
 name: grouped-tasks
-description: Use when generating task files for openspec or superpower planning, when turning an approved design doc into an implementation plan, or when a user asks for a multi-step plan or todo list that should be organized into explicit task groups.
+description: "Use when generating or updating OpenSpec task artifacts or tasks.md during artifact workflow commands such as openspec ff, openspec new, openspec continue, /opsx:ff, /opsx:new, or /opsx:continue, especially when creating all artifacts needed for implementation, and when using writing-plans for superpower plans or creating multi-step plan or todo output that must stay in explicit task groups."
 ---
 
 # Grouped Tasks
@@ -66,6 +66,13 @@ Use this mapping for `recommended agent`:
 - `unknown` -> `@implementation-agent-thinker`
 
 Use the literal agent ids above. Do not invent aliases such as `implementation-agent-medium`, `implementation-agent-high`, or other derived names.
+
+## Execution Contract
+
+- must be delegated to the literal agent id named in `recommended agent`.
+- if a group omits `recommended agent`, execution must stop.
+- if the listed agent is unavailable, execution must stop.
+- review agents and review commands are forbidden during grouped-plan execution unless the user or the plan explicitly names review.
 
 ## Quick Reference
 

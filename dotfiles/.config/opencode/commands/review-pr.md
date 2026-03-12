@@ -112,12 +112,6 @@ After the agents complete, summarize:
 
 ## Workflow Integration
 
-**Before committing:**
-1. Write code.
-2. Run `/review-pr code errors`.
-3. Fix any critical issues.
-4. Commit.
-
 **Before creating a PR:**
 1. Stage all changes.
 2. Run `/review-pr all`.
