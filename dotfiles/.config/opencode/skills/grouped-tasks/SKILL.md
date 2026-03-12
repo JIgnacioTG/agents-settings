@@ -1,6 +1,6 @@
 ---
 name: grouped-tasks
-description: "Use when generating or updating OpenSpec task artifacts or tasks.md during artifact workflow commands such as openspec ff, openspec new, openspec continue, /opsx:ff, /opsx:new, or /opsx:continue, especially when creating all artifacts needed for implementation, and when using writing-plans for superpower plans or creating multi-step plan or todo output that must stay in explicit task groups."
+description: "Use when generating or updating grouped OpenSpec task artifacts or grouped multi-step plans, especially during `openspec-new-change`, `openspec-ff-change`, `openspec-continue-change`, `/opsx:new`, `/opsx:ff`, `/opsx:continue`, `writing-plans`, or whenever a flat multi-step plan must be rewritten into explicit task groups."
 ---
 
 # Grouped Tasks
@@ -11,7 +11,7 @@ Turn planning output into explicit task groups instead of flat lists.
 
 **Core principle:** every group must declare its work, dependency shape, execution mode, and implementation routing before execution starts.
 
-This skill shapes planning output. If another planning workflow would produce a flat sequence of tasks, regroup that output before returning it.
+This skill shapes grouped artifacts. It does not execute already-grouped work.
 
 ## Required Output
 
@@ -19,7 +19,7 @@ Never produce a flat task list when this skill applies.
 
 This includes:
 
-- openspec task files
+- grouped OpenSpec tasks artifacts
 - superpower plans
 - implementation plans generated from approved design docs
 - user-requested multi-step plans
@@ -67,21 +67,32 @@ Use this mapping for `recommended agent`:
 
 Use the literal agent ids above. Do not invent aliases such as `implementation-agent-medium`, `implementation-agent-high`, or other derived names.
 
-## Execution Contract
+## OpenSpec Boundaries
 
-- must be delegated to the literal agent id named in `recommended agent`.
-- if a group omits `recommended agent`, execution must stop.
-- if the listed agent is unavailable, execution must stop.
-- review agents and review commands are forbidden during grouped-plan execution unless the user or the plan explicitly names review.
+For OpenSpec repositories:
+
+- `/openspec-new-change` or `/opsx:new` -> this skill may apply while creating grouped tasks output
+- `/openspec-ff-change` or `/opsx:ff` -> this skill may apply while generating all artifacts, if grouped tasks output is being written
+- `/openspec-continue-change` or `/opsx:continue` -> this skill may apply while updating the next grouped tasks artifact
+- `/openspec-apply-change` or `/opsx:apply` -> this skill does not execute the grouped artifact; hand off to `executing-grouped-tasks` once grouped routing exists
+- do not use this skill just because the user mentioned OpenSpec; it applies only when the artifact being written or rewritten must be grouped
+
+## Execution Handoff
+
+If grouped work already exists and the request is to implement or continue implementation:
+
+- stop using this skill for control flow
+- preserve the grouped artifact as written
+- hand execution to `executing-grouped-tasks`
 
 ## Quick Reference
 
-- `openspec task file` -> grouped tasks required
-- `superpower plan` -> grouped tasks required
-- `implementation plan` -> grouped tasks required
-- `approved design doc` -> grouped tasks required
-- `plan` for multi-step work -> grouped tasks required
-- `todo list` for multi-step work -> grouped tasks required
+- `openspec-new-change` plus grouped tasks generation -> this skill applies
+- `openspec-ff-change` plus grouped tasks generation -> this skill applies
+- `openspec-continue-change` plus grouped tasks generation -> this skill applies
+- `writing-plans` for multi-step work -> grouped tasks required
+- `rewrite this flat plan into groups` -> this skill applies
+- `execute this grouped plan` -> use `executing-grouped-tasks`
 - single trivial action -> this skill does not apply
 
 ## Common Mistakes
@@ -94,6 +105,7 @@ Use the literal agent ids above. Do not invent aliases such as `implementation-a
 - Invented agent aliases instead of the literal configured agent ids
 - Using `unknown` without naming the missing research
 - Letting another planning skill return a flat numbered task sequence
+- Trying to execute grouped work from this skill instead of handing off
 
 ## Rationalization Table
 
@@ -104,6 +116,7 @@ Use the literal agent ids above. Do not invent aliases such as `implementation-a
 | "The groups are obvious" | If dependencies are not written, the plan is incomplete. |
 | "I can add routing later" | Agent routing is part of the plan contract. |
 | "Unknown is safer" | `unknown` without missing-research notes is incomplete planning. |
+| "Execution can figure it out" | Missing routing in the artifact is a planning failure. |
 
 ## Red Flags
 
