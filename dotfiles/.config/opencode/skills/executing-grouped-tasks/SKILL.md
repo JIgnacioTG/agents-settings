@@ -53,7 +53,7 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - if a group omits `recommended agent`, execution must stop
 - if the listed agent is unavailable, execution must stop
 - if execution begins with `subagent-driven-development` or another generic executor before honoring grouped routing, execution must stop and restart under this skill
-- review agents and review commands are forbidden during grouped-plan execution unless the user or the plan explicitly names review
+- do not invoke `requesting-code-review`, review agents, or review commands during grouped-plan execution unless the user or the plan explicitly names review
 
 ## OpenSpec Boundaries
 
@@ -77,6 +77,7 @@ For OpenSpec repositories:
 
 - Rewriting grouped work into a generic per-task loop before delegation
 - Starting `subagent-driven-development` directly on a grouped artifact
+- Auto-invoking `requesting-code-review` when no review was requested
 - Ignoring dependency gates between groups
 - Treating `recommended agent` as optional
 - Running groups in parallel when the grouped artifact says serialization is required
@@ -93,6 +94,7 @@ For OpenSpec repositories:
 ## Red Flags
 
 - Fresh-session execution that skips straight to a generic executor
+- Any automatic `requesting-code-review` invocation without explicit review request
 - Missing `recommended agent`
 - Group execution that ignores dependencies
 - Group execution that ignores declared parallelization
