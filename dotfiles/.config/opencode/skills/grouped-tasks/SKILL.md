@@ -72,11 +72,13 @@ Use this mapping for `recommended agent`:
 
 - `simple` -> `@implementation-agent-fast`
 - `low` -> `@implementation-agent-fast`
-- `medium` -> `@implementation-agent-spark`
+- `medium` -> `@implementation-agent-medium`
 - `high` -> `@implementation-agent`
 - `unknown` -> `@implementation-agent-thinker`
 
-Use the literal agent ids above. Do not invent aliases such as `implementation-agent-medium`, `implementation-agent-high`, or other derived names.
+Use the literal agent ids above. Do not invent aliases such as `implementation-agent-low`, `implementation-agent-high`, or other derived names.
+
+Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-medium` for `medium` work.
 
 ## OpenSpec Boundaries
 
