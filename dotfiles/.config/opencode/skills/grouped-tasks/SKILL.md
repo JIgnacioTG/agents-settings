@@ -9,6 +9,8 @@ description: "Use when generating or updating grouped OpenSpec task artifacts or
 
 Turn planning output into explicit task groups instead of flat lists.
 
+For OpenSpec `tasks.md`, grouping is additive: preserve the artifact's existing sectioned checklist format and attach the required group metadata without rewriting the task body into a new structure.
+
 **Core principle:** every group must declare its work, dependency shape, execution mode, and implementation routing before execution starts.
 
 This skill shapes grouped artifacts. It does not execute already-grouped work.
@@ -33,6 +35,15 @@ Every group must include:
 - `dependencies`
 - `parallelization`
 - `recommended agent`
+
+When the artifact is OpenSpec `tasks.md`, keep the `tasks` content in the repository's existing section format, for example:
+
+```markdown
+Section 1. CRUD
+- 1.1 [ ] Add the create view
+```
+
+Add `goal`, `complexity`, `dependencies`, `parallelization`, and `recommended agent` around that section content. Do not replace the section headings or checkbox list with a new task-body format.
 
 Allowed complexity values:
 
@@ -71,6 +82,7 @@ Use the literal agent ids above. Do not invent aliases such as `implementation-a
 
 For OpenSpec repositories:
 
+- preserve the existing `tasks.md` section layout and treat grouped metadata as an overlay on top of that layout
 - `/openspec-new-change` or `/opsx:new` -> this skill may apply while creating grouped tasks output
 - `/openspec-ff-change` or `/opsx:ff` -> this skill may apply while generating all artifacts, if grouped tasks output is being written
 - `/openspec-continue-change` or `/opsx:continue` -> this skill may apply while updating the next grouped tasks artifact
@@ -98,6 +110,7 @@ If grouped work already exists and the request is to implement or continue imple
 ## Common Mistakes
 
 - Flat checklist without groups
+- Rewriting OpenSpec sectioned checklist tasks into a different task-body format
 - Group without complexity
 - Group without dependency notes
 - Missing cross-group parallelization analysis
@@ -121,6 +134,7 @@ If grouped work already exists and the request is to implement or continue imple
 ## Red Flags
 
 - Flat list for multi-step work
+- OpenSpec `tasks.md` sections rewritten instead of preserved
 - Missing `parallelization`
 - Missing `recommended agent`
 - More than one complexity per group
