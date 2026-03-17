@@ -1,38 +1,33 @@
 ---
 name: review-pr
-description: Use when the user explicitly asks for a broad review of changed code or a pull request using specialized review passes such as comments, tests, errors, types, code, or simplify.
+description: Use when the user explicitly asks for a broad review of changed code or a pull request using the original pr-review-toolkit style passes such as comments, tests, errors, types, code, or simplify.
 ---
 
 # Review PR
 
-Run an explicit multi-pass review using the review-only assets under `dotfiles/.codex/agents/review/`.
+Run an explicit multi-pass review that mirrors the original Claude Code `pr-review-toolkit` workflow once invoked.
 
 Do not use this skill unless the user explicitly requested review.
 
-## Review Assets
+## Pass Profiles
 
-Load only the assets needed for the requested review:
+Load only the profiles needed for the requested review:
 
-- `../../agents/review/code-reviewer.md`
-- `../../agents/review/code-simplifier.md`
-- `../../agents/review/comment-analyzer.md`
-- `../../agents/review/silent-failure-hunter.md`
-- `../../agents/review/type-design-analyzer.md`
-- `../../agents/review/pr-test-analyzer.md`
+- `./references/code-reviewer.md`
+- `./references/code-simplifier.md`
+- `./references/comment-analyzer.md`
+- `./references/silent-failure-hunter.md`
+- `./references/type-design-analyzer.md`
+- `./references/pr-test-analyzer.md`
 
-Use these support assets when the workflow needs them:
+Each profile declares its own `model` and `reasoning_effort`. Use those defaults directly.
 
-- `../../agents/review/pr-triage.md`
-- `../../agents/review/pr-summarizer.md`
-- `../../agents/review/config-finder.md`
-- `../../agents/review/compliance-auditor.md`
-- `../../agents/review/issue-validator.md`
+Do not use Spark by default for review.
 
 ## Workflow
 
 1. Determine the review scope from the explicit user request.
-2. Inspect the changed files or requested PR scope.
-3. Decide which review passes apply:
+2. Parse requested aspects if present:
    - `comments`
    - `tests`
    - `errors`
@@ -40,12 +35,29 @@ Use these support assets when the workflow needs them:
    - `code`
    - `simplify`
    - `all`
-4. Run only the relevant review passes.
-5. Summarize findings by severity with file references.
+   - `parallel`
+3. Identify changed files from `git diff --name-only`, and check whether a PR exists when that context matters.
+4. Determine applicable passes from the diff:
+   - always include `code-reviewer` for general quality
+   - include `pr-test-analyzer` when tests changed or behavior changed without obvious coverage
+   - include `comment-analyzer` when comments or docs changed
+   - include `silent-failure-hunter` when error handling, fallbacks, or retry paths changed
+   - include `type-design-analyzer` when new or changed types appear
+   - include `code-simplifier` only when `simplify` was explicitly requested or after a broad review with no critical blockers
+5. Run passes sequentially by default. Run them in parallel only when the user explicitly requested `parallel`.
+6. Aggregate findings into:
+   - critical issues
+   - important issues
+   - suggestions
+   - strengths
+   - recommended action
+7. Include file references and name which pass produced each finding.
 
 ## Rules
 
 - Default to all applicable review passes only when the user asked for a broad review without narrowing scope.
 - Keep review high-signal and actionable.
 - Do not silently mutate code as part of review.
+- Treat `simplify` as a polish pass, not a blocker-finding pass.
+- Keep the original plugin behavior, but do not proactively trigger review on your own.
 - Do not invoke this skill from grouped execution unless review is explicitly requested.

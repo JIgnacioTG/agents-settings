@@ -16,7 +16,8 @@
 - Allowed Codex grouped-work complexity values are `low`, `medium`, `high`, and `unknown`. Do not emit `simple` on the Codex side.
 - Default Codex grouped routing is `low` -> `gpt-5.1-codex-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
 - Codex Spark is optional only for `medium` and `high` grouped work when the tradeoff is worth offering. If Spark is unavailable or declined, continue with the declared non-Spark execution profile.
-- Review-only assets under `dotfiles/.codex/agents/review/` are reserved for the `review-pr` and `code-review` skills. Do not use them as general implementation personas.
+- Codex review skills own their review pass profiles under `dotfiles/.codex/skills/review-pr/references/` and `dotfiles/.codex/skills/code-review/references/`. Do not invent generic review agents outside those workflows.
+- Review flows should use the model and reasoning defaults declared by their pass profiles. Do not use Spark for review by default.
 - After a session of changes, run the linter and the type checker to ensure code quality on the files changed (never at repo level, until user explicitly requests it), run tests related to the changes and only if all was successful stage all changes and commit them following project guidelines.
 - If the files changed have some test related, exec it and ensure tests still working.
 - If the project has a `docker-compose.yml` or `docker-compose.worktree.yml` file, run all related project commands (linting, type checking, tests, etc.) with docker: `docker compose -f docker-compose.worktree.yml run --rm [service] [command]`, prefer worktree version over normal one.
