@@ -1,6 +1,7 @@
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 model_reasoning_effort = "high"
 web_search = "live"
+service_tier = "fast"
 
 [features]
 multi_agent = true
@@ -17,6 +18,9 @@ trust_level = "trusted"
 [projects."/Users/ignacio/Development/Repositories/reserhub-revenue-full"]
 trust_level = "trusted"
 
+[projects."/Users/ignacio/repositories/agents-settings"]
+trust_level = "trusted"
+
 [sandbox_workspace_write]
 network_access = true
 
@@ -25,3 +29,6 @@ alternate_screen = "never"
 
 [mcp_servers.linear]
 url = "https://mcp.linear.app/mcp"
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"

@@ -89,3 +89,5 @@ prefix_rule(
 )
 
 prefix_rule(pattern=["gh", "pr"], decision="allow")
+prefix_rule(pattern=["git", "add"], decision="allow")
+prefix_rule(pattern=["git", "commit"], decision="allow")
