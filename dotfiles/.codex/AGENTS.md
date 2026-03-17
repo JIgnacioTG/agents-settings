@@ -16,7 +16,7 @@
 - Before starting coding or delegation from an existing grouped tasks file or grouped implementation plan, first check whether grouped routing already exists; if it does, invoke `executing-grouped-tasks` and preserve the declared group boundaries.
 - Codex grouped plans must use `execution profile` metadata, not `recommended agent`.
 - Allowed Codex grouped-work complexity values are `low`, `medium`, `high`, and `unknown`. Do not emit `simple` on the Codex side.
-- Default Codex grouped routing is `low` -> `gpt-5.1-codex-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
+- Default Codex grouped routing is `low` -> `gpt-5.4-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
 - Codex Spark is optional only for `medium` and `high` grouped work when the tradeoff is worth offering. If Spark is unavailable or declined, continue with the declared non-Spark execution profile.
 - Codex review skills own their review pass profiles under `dotfiles/.codex/skills/review-pr/references/` and `dotfiles/.codex/skills/code-review/references/`. Do not invent generic review agents outside those workflows.
 - Review flows should use the model and reasoning defaults declared by their pass profiles. Do not use Spark for review by default.

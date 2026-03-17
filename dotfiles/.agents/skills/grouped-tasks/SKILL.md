@@ -54,7 +54,7 @@ Allowed Codex complexity values:
 
 Use this mapping unless the user explicitly overrides it:
 
-- `low` -> `gpt-5.1-codex-mini`, `reasoning_effort: medium`, `spark_offer: false`
+- `low` -> `gpt-5.4-mini`, `reasoning_effort: medium`, `spark_offer: false`
 - `medium` -> `gpt-5.3-codex`, `reasoning_effort: medium`, `spark_offer: true`
 - `high` -> `gpt-5.3-codex`, `reasoning_effort: high`, `spark_offer: true`
 - `unknown` -> `gpt-5.4`, `reasoning_effort: high`, `spark_offer: false`
