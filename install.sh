@@ -25,6 +25,11 @@ BACKUP_DIR="${BACKUP_BASE}/${TIMESTAMP}"
 
 backup_needed=false
 
+is_skill_path() {
+    local relative_path="$1"
+    [[ "$relative_path" == .agents/skills/* ]]
+}
+
 is_correct_symlink() {
     local source_path="$1"
     local target_path="$2"
@@ -40,7 +45,7 @@ is_correct_symlink() {
     fi
 }
 
-backup_file() {
+backup_path() {
     local target_path="$1"
     local relative_path="$2"
     local backup_path="${BACKUP_DIR}/${relative_path}"
@@ -52,11 +57,29 @@ backup_file() {
         link_target="$(readlink "$target_path")"
         echo "$link_target" > "${backup_path}.symlink"
         print_info "Backed up symlink: ${target_path} -> ${link_target}"
+    elif [[ -d "$target_path" ]]; then
+        cp -pR "$target_path" "$backup_path"
+        print_info "Backed up directory: ${target_path}"
     elif [[ -f "$target_path" ]]; then
         cp -p "$target_path" "$backup_path"
         print_info "Backed up file: ${target_path}"
     fi
     backup_needed=true
+}
+
+remove_target() {
+    local target_path="$1"
+
+    if [[ -L "$target_path" ]]; then
+        print_action "Removing existing symlink: ${target_path}"
+        rm "$target_path"
+    elif [[ -d "$target_path" ]]; then
+        print_action "Removing existing directory: ${target_path}"
+        rm -rf "$target_path"
+    elif [[ -e "$target_path" ]]; then
+        print_action "Removing existing file: ${target_path}"
+        rm "$target_path"
+    fi
 }
 
 process_dotfile() {
@@ -84,17 +107,41 @@ process_dotfile() {
     fi
 
     if [[ -e "$target_path" || -L "$target_path" ]]; then
-        backup_file "$target_path" "$relative_path"
-        if [[ -L "$target_path" ]]; then
-            print_action "Removing existing symlink: ${target_path}"
-        else
-            print_action "Removing existing file: ${target_path}"
-        fi
-        rm "$target_path"
+        backup_path "$target_path" "$relative_path"
+        remove_target "$target_path"
     fi
 
     ln -s "$source_path" "$target_path"
     print_success "Created symlink: ${target_path} -> ${source_path}"
+}
+
+process_skill() {
+    local skill_name="$1"
+    local relative_path=".agents/skills/${skill_name}"
+    local source_path="${DOTFILES_DIR}/${relative_path}"
+    local target_path="${HOME_CONFIG}/${relative_path}"
+
+    print_info "Processing skill: ${relative_path}"
+
+    if [[ ! -d "$source_path" ]]; then
+        print_error "Skill source not found: ${source_path}"
+        return 1
+    fi
+
+    local parent_dir
+    parent_dir="$(dirname "$target_path")"
+    if [[ ! -d "$parent_dir" ]]; then
+        print_action "Creating directory: ${parent_dir}"
+        mkdir -p "$parent_dir"
+    fi
+
+    if [[ -e "$target_path" || -L "$target_path" ]]; then
+        backup_path "$target_path" "$relative_path"
+        remove_target "$target_path"
+    fi
+
+    cp -R "$source_path" "$target_path"
+    print_success "Copied skill directory: ${target_path}"
 }
 
 main() {
@@ -118,8 +165,23 @@ main() {
     local errors=0
     local processed=0
 
+    if [[ -d "${DOTFILES_DIR}/.agents/skills" ]]; then
+        while IFS= read -r -d '' skill_dir; do
+            skill_name="$(basename "$skill_dir")"
+            if process_skill "$skill_name"; then
+                ((processed++)) || true
+            else
+                ((errors++)) || true
+            fi
+            echo ""
+        done < <(find "${DOTFILES_DIR}/.agents/skills" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+    fi
+
     while IFS= read -r -d '' file; do
         relative_path="${file#${DOTFILES_DIR}/}"
+        if is_skill_path "$relative_path"; then
+            continue
+        fi
         if process_dotfile "$relative_path"; then
             ((processed++)) || true
         else
