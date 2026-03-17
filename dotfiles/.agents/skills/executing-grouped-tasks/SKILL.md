@@ -1,11 +1,22 @@
 ---
 name: executing-grouped-tasks
-description: Use when implementing from an already-grouped Codex plan that declares dependencies, parallelization, complexity, and execution-profile routing.
+description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session.
 ---
 
 # Executing Grouped Tasks
 
 Execute grouped implementation work group by group without flattening it into a generic task loop.
+
+## Automatic Trigger Cases
+
+Use this skill automatically when the active artifact is already grouped and work is moving into implementation, for example:
+
+- coding from an existing grouped OpenSpec tasks file
+- coding from an approved grouped superpower plan
+- coding from a grouped Codex implementation plan
+- continuing grouped execution in a fresh session
+
+Before writing code or delegating implementation, check whether the active artifact is already grouped. If it is, this skill owns execution. If it is not, return to `grouped-tasks`.
 
 ## Preconditions
 
@@ -50,6 +61,14 @@ When a fresh session receives an existing grouped plan:
 - preserve the declared group boundaries
 - execute ready groups using the declared `execution profile`
 - reassess dependencies after each completed group
+
+## Pre-Execution Check
+
+Before implementation starts:
+
+- inspect the active artifact to determine whether grouped routing already exists
+- if grouped routing exists, preserve the artifact and execute it with this skill
+- if grouped routing does not exist or is incomplete, stop and repair the artifact with `grouped-tasks`
 
 ## Common Mistakes
 

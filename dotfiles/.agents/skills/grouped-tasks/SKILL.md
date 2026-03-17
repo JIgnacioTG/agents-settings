@@ -1,6 +1,6 @@
 ---
 name: grouped-tasks
-description: Use when generating or rewriting a Codex multi-step implementation plan into grouped work with explicit complexity, dependencies, parallelization, and execution-profile routing.
+description: Use when generating or rewriting grouped OpenSpec task artifacts, superpower plans, or Codex multi-step implementation plans so the output carries explicit complexity, dependencies, parallelization, and execution-profile routing before execution starts.
 ---
 
 # Grouped Tasks
@@ -8,6 +8,17 @@ description: Use when generating or rewriting a Codex multi-step implementation 
 Turn multi-step implementation work into explicit task groups instead of flat lists.
 
 This skill shapes grouped implementation artifacts. It does not execute them.
+
+## Automatic Trigger Cases
+
+Use this skill automatically when the active work is any of the following:
+
+- OpenSpec task artifact creation or update where grouped tasks output is being written or repaired
+- superpower plan creation or rewrite for implementation work
+- Codex multi-step implementation planning, including user-requested plans or todo lists that will drive execution
+- any flat implementation plan that must be regrouped before coding begins
+
+If the grouped artifact already exists and implementation is about to start, stop using this skill and hand off to `executing-grouped-tasks`.
 
 ## Required Output
 
@@ -87,6 +98,7 @@ Use a compact grouped format like this:
 
 - Use this skill for grouped implementation planning, not brainstorming.
 - Use this skill when the work is implementation-oriented and multi-step.
+- Do not wait for an explicit skill mention when the request is OpenSpec artifact creation, superpower planning, or Codex implementation planning that should produce grouped work.
 - If the grouped artifact already exists and the request is to execute it, hand off to `executing-grouped-tasks`.
 - Do not emit review steps unless the user explicitly requested review or the provided plan already includes one.
 

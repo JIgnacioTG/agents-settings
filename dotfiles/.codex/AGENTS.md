@@ -12,6 +12,8 @@
 - If there is any ambiguity about whether `brainstorming` is needed, default to not using it unless the user explicitly requests it.
 - When the choice is between acting directly and invoking `brainstorming`, always prefer direct execution unless the user explicitly asked for brainstorming.
 - For Codex grouped implementation planning and execution, use the `grouped-tasks` and `executing-grouped-tasks` skills as the source of truth instead of inventing implementation-agent names.
+- For OpenSpec task artifact creation or update, superpower plan creation, and Codex multi-step implementation planning, invoke `grouped-tasks` automatically whenever the output should be a grouped execution artifact.
+- Before starting coding or delegation from an existing grouped tasks file or grouped implementation plan, first check whether grouped routing already exists; if it does, invoke `executing-grouped-tasks` and preserve the declared group boundaries.
 - Codex grouped plans must use `execution profile` metadata, not `recommended agent`.
 - Allowed Codex grouped-work complexity values are `low`, `medium`, `high`, and `unknown`. Do not emit `simple` on the Codex side.
 - Default Codex grouped routing is `low` -> `gpt-5.1-codex-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
