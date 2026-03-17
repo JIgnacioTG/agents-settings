@@ -44,11 +44,13 @@ If any field is missing, stop and return to `grouped-tasks`.
 - Delegate every ready group to its own subagent or worker instead of implementing grouped work inline in the parent agent.
 - Read each group's `execution profile` literally.
 - Use the declared model and reasoning effort directly when creating that delegation instead of inventing implementation-agent names.
+- Give each delegated group enough implementation context to avoid redundant startup exploration, including the relevant files, current findings, dependency notes, and verification expectations already known by the parent agent.
 - If only one group is ready, delegate that group anyway; single-group execution is not an exception.
 - If multiple ready groups are explicitly marked independent, delegate those groups in parallel.
 - If Spark is offered for the group, offer it to the user only when it is actually worth the tradeoff.
 - If Spark is unavailable or declined, continue with the declared non-Spark profile for that group.
 - If the grouped artifact says serialization is required, serialize.
+- After delegating a group, allow at least 10 minutes for startup and exploration before interrupting, killing, or redirecting that agent unless the user explicitly asks for it or a hard blocker or safety issue appears.
 - If delegation tooling is unavailable, stop and surface the blocker instead of executing the grouped work locally.
 
 ## Review Guard
@@ -64,7 +66,8 @@ When a fresh session receives an existing grouped plan:
 - identify which groups are ready and which are blocked
 - preserve the declared group boundaries
 - delegate ready groups using the declared `execution profile`
-- pass the full group contents, dependency notes, and verification expectations into each delegation
+- pass the full group contents, relevant implementation context, dependency notes, and verification expectations into each delegation
+- treat early silence as normal exploration and do not interrupt a delegated group during its first 10 minutes unless the user explicitly requests it or a hard blocker or safety issue appears
 - reassess dependencies after each completed group
 
 ## Pre-Execution Check
@@ -82,5 +85,6 @@ Before implementation starts:
 - Ignoring the declared `execution profile`
 - Replacing `execution profile` with implementation-agent aliases
 - Treating single-group execution as a reason to skip delegation
+- Interrupting or killing a delegated group too early while it is still exploring startup context
 - Running review automatically after implementation
 - Running groups in parallel when dependencies say not to

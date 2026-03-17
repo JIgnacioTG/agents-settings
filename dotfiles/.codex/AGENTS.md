@@ -16,6 +16,8 @@
 - Before starting coding or delegation from an existing grouped tasks file or grouped implementation plan, first check whether grouped routing already exists; if it does, invoke `executing-grouped-tasks` and preserve the declared group boundaries.
 - When `executing-grouped-tasks` applies, always delegate each ready group to a subagent using the group's declared `execution profile`; never execute grouped implementation inline in the parent agent.
 - This delegation rule still applies when only one group is ready; single-group execution is not an exception.
+- When delegating grouped implementation, provide the subagent with the relevant implementation context you already have so it does not waste startup time on avoidable exploration.
+- After delegating a grouped implementation agent, allow at least 10 minutes before interrupting, killing, or redirecting it unless the user explicitly asks for that intervention or a hard blocker or safety issue appears.
 - Codex grouped plans must use `execution profile` metadata, not `recommended agent`.
 - Allowed Codex grouped-work complexity values are `low`, `medium`, `high`, and `unknown`. Do not emit `simple` on the Codex side.
 - Default Codex grouped routing is `low` -> `gpt-5.4-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
