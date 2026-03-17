@@ -1,6 +1,6 @@
 ---
 name: executing-grouped-tasks
-description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session.
+description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session. When this skill applies, delegate each ready group to a subagent using the literal declared execution profile instead of implementing the grouped work inline.
 ---
 
 # Executing Grouped Tasks
@@ -40,12 +40,16 @@ If any field is missing, stop and return to `grouped-tasks`.
 ## Execution Contract
 
 - Execute work at the group level first, not task-by-task across group boundaries.
+- Delegation is mandatory when this skill applies.
+- Delegate every ready group to its own subagent or worker instead of implementing grouped work inline in the parent agent.
 - Read each group's `execution profile` literally.
-- Use the declared model and reasoning effort directly instead of inventing implementation-agent names.
+- Use the declared model and reasoning effort directly when creating that delegation instead of inventing implementation-agent names.
+- If only one group is ready, delegate that group anyway; single-group execution is not an exception.
+- If multiple ready groups are explicitly marked independent, delegate those groups in parallel.
 - If Spark is offered for the group, offer it to the user only when it is actually worth the tradeoff.
 - If Spark is unavailable or declined, continue with the declared non-Spark profile for that group.
-- If multiple ready groups are explicitly marked independent, parallel execution is allowed.
 - If the grouped artifact says serialization is required, serialize.
+- If delegation tooling is unavailable, stop and surface the blocker instead of executing the grouped work locally.
 
 ## Review Guard
 
@@ -59,7 +63,8 @@ When a fresh session receives an existing grouped plan:
 - read all groups first
 - identify which groups are ready and which are blocked
 - preserve the declared group boundaries
-- execute ready groups using the declared `execution profile`
+- delegate ready groups using the declared `execution profile`
+- pass the full group contents, dependency notes, and verification expectations into each delegation
 - reassess dependencies after each completed group
 
 ## Pre-Execution Check
@@ -73,7 +78,9 @@ Before implementation starts:
 ## Common Mistakes
 
 - Flattening groups into a generic task loop
+- Implementing grouped work inline in the parent agent instead of delegating each ready group
 - Ignoring the declared `execution profile`
 - Replacing `execution profile` with implementation-agent aliases
+- Treating single-group execution as a reason to skip delegation
 - Running review automatically after implementation
 - Running groups in parallel when dependencies say not to
