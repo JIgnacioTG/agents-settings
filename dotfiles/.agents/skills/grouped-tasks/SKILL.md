@@ -59,7 +59,9 @@ Use this mapping unless the user explicitly overrides it:
 - `high` -> `gpt-5.3-codex`, `reasoning_effort: high`, `spark_offer: true`
 - `unknown` -> `gpt-5.4`, `reasoning_effort: high`, `spark_offer: false`
 
-Use `gpt-5.4` only when the work is still unclear, research-heavy, or not implementation-ready.
+Implementation-test groups are an explicit exception to the default mapping. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, route it to `gpt-5.4` with `reasoning_effort: xhigh` and `spark_offer: false` even when the group's overall complexity would otherwise map to a smaller model.
+
+Use `gpt-5.4` only when the work is still unclear, research-heavy, not implementation-ready, or the group is primarily implementation-test work.
 
 Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff.
 
@@ -110,4 +112,5 @@ Use a compact grouped format like this:
 - Using `recommended agent`
 - Using `unknown` without naming the missing research
 - Offering Spark for `low` or `unknown`
+- Routing implementation-test groups to the default complexity mapping instead of `gpt-5.4` with `xhigh`
 - Treating `gpt-5.4` as the default for planned implementation
