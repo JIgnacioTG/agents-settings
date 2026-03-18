@@ -50,12 +50,12 @@ If any field is missing, stop and return to `grouped-tasks`.
   - `inherit` means use fast mode when the parent session is already running in fast mode or the user explicitly asked for fast mode
   - `off` means keep this group on the declared non-fast fallback profile
   - `on` means force fast mode for this group even when the parent session is not already fast
-- If fast mode is active for the group after that resolution, use it without re-offering Spark for that group.
+- If fast mode is active for the group after that resolution, keep Spark as a separate optional acceleration layer for eligible groups instead of treating fast mode as the final speed setting.
 - Keep the explore pass bounded to repository grounding, current implementation shape, dependency notes, and verification targets. It must not redesign or regroup the plan.
 - Pass the explore findings into the implementation delegation so the implementation agent starts with the relevant files, current findings, dependency notes, and verification expectations instead of rediscovering them.
 - If only one group is ready, delegate that group anyway; single-group execution is not an exception.
 - If multiple ready groups are explicitly marked independent, delegate those groups in parallel.
-- If fast mode is not already active for the group and `spark_offer` is true, offer Spark only when it is actually worth the tradeoff.
+- If `spark_offer` is true, offer Spark only when it is actually worth the tradeoff, including when fast mode is already active for the group.
 - If fast mode is requested for a group but unavailable, surface that fallback and continue with the declared non-fast profile for that group.
 - Do not ask the implementation delegate to perform another broad startup exploration when the grouped plan and explore summary already make the work implementation-ready. Escalate only if a concrete blocker remains after the scoped explore pass.
 - If the grouped artifact says serialization is required, serialize.
@@ -99,7 +99,7 @@ Before implementation starts:
 - Replacing `execution profile` with implementation-agent aliases
 - Treating single-group execution as a reason to skip delegation
 - Allowing the implementation delegate to restart broad exploration after it already received the grouped plan and explore summary
-- Re-offering Spark per group even though fast mode is already active for the grouped run
+- Treating fast mode as a reason to stop offering Spark on eligible groups
 - Interrupting or killing a delegated group too early while it is still exploring startup context
 - Running review automatically after implementation
 - Running groups in parallel when dependencies say not to

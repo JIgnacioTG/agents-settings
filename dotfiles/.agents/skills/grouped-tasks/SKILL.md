@@ -74,7 +74,7 @@ When an implementation-test group stays `unknown`, name the missing research exp
 
 Use `gpt-5.4` only when the work is still unclear, research-heavy, not implementation-ready, or the implementation-test group still needs research before its setup and data generation are concrete.
 
-When the parent session is not already in fast mode and the user has not requested fast mode, Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff.
+Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff, including when fast mode is already active or the user explicitly requested fast mode, because Spark can still be faster than regular fast mode.
 
 When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
 
@@ -126,7 +126,8 @@ Use a compact grouped format like this:
 - Missing `fast_mode`
 - Using `recommended agent`
 - Using `unknown` without naming the missing research
-- Offering Spark for `low` or `unknown` when fast mode is not already active
+- Offering Spark for `low` or `unknown`
 - Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
+- Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Treating `gpt-5.4` as the default for planned implementation
