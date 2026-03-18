@@ -38,6 +38,7 @@ The `execution profile` must declare:
 - `model`
 - `reasoning_effort`
 - `spark_offer`
+- `fast_mode`
 
 Allowed Codex complexity values:
 
@@ -59,13 +60,23 @@ Use this mapping unless the user explicitly overrides it:
 - `high` -> `gpt-5.3-codex`, `reasoning_effort: high`, `spark_offer: true`
 - `unknown` -> `gpt-5.4`, `reasoning_effort: xhigh`, `spark_offer: false`
 
+Treat that mapping as the non-fast fallback profile. Set `fast_mode: inherit` by default for every group unless the user explicitly overrides fast-mode behavior for that group.
+
+`fast_mode` must be one of:
+
+- `inherit` to use fast mode when the parent session is already running in fast mode or the user explicitly asks for fast mode
+- `off` to keep this group on the declared non-fast fallback profile even when fast mode is active elsewhere
+- `on` to force fast mode for this group even when the parent session is not already fast
+
 Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `complexity: unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
 
 When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
 
 Use `gpt-5.4` only when the work is still unclear, research-heavy, not implementation-ready, or the implementation-test group still needs research before its setup and data generation are concrete.
 
-Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff.
+When the parent session is not already in fast mode and the user has not requested fast mode, Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff.
+
+When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
 
 ## Parallel Analysis
 
@@ -96,6 +107,7 @@ Use a compact grouped format like this:
   - model: gpt-5.3-codex
   - reasoning_effort: high
   - spark_offer: true
+  - fast_mode: inherit
 ```
 
 ## Boundaries
@@ -111,8 +123,10 @@ Use a compact grouped format like this:
 - Flat task lists
 - Emitting `simple`
 - Missing `execution profile`
+- Missing `fast_mode`
 - Using `recommended agent`
 - Using `unknown` without naming the missing research
-- Offering Spark for `low` or `unknown`
+- Offering Spark for `low` or `unknown` when fast mode is not already active
+- Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Treating `gpt-5.4` as the default for planned implementation
