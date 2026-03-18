@@ -47,13 +47,14 @@ Add `goal`, `complexity`, `dependencies`, `parallelization`, and `recommended ag
 
 Allowed complexity values:
 
-- `simple`
 - `low`
 - `medium`
 - `high`
 - `unknown`
 
 `unknown` is valid only when the missing research is stated explicitly.
+
+Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
 
 ## Parallel Analysis
 
@@ -70,7 +71,6 @@ If nothing can run in parallel, say so explicitly.
 
 Use this mapping for `recommended agent`:
 
-- `simple` -> `@implementation-agent-fast`
 - `low` -> `@implementation-agent-fast`
 - `medium` -> `@implementation-agent-medium`
 - `high` -> `@implementation-agent`
@@ -78,7 +78,9 @@ Use this mapping for `recommended agent`:
 
 Use the literal agent ids above. Do not invent aliases such as `implementation-agent-low`, `implementation-agent-high`, or other derived names.
 
-Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-medium` for `medium` work.
+When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
+
+Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-medium` for `medium` work and `@implementation-agent` for `high` work.
 
 ## OpenSpec Boundaries
 
@@ -117,6 +119,7 @@ If grouped work already exists and the request is to implement or continue imple
 - Group without dependency notes
 - Missing cross-group parallelization analysis
 - Routing `unknown` to anything except `@implementation-agent-thinker`
+- Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
 - Using `unknown` without naming the missing research
 - Letting another planning skill return a flat numbered task sequence
@@ -141,5 +144,6 @@ If grouped work already exists and the request is to implement or continue imple
 - Missing `recommended agent`
 - More than one complexity per group
 - `unknown` with no explanation
+- `simple` used as a new-plan complexity level
 
 If any red flag appears, rewrite the plan in grouped form before continuing.

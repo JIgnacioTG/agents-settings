@@ -20,8 +20,9 @@
 - After delegating a grouped implementation agent, allow at least 10 minutes before interrupting, killing, or redirecting it unless the user explicitly asks for that intervention or a hard blocker or safety issue appears.
 - Codex grouped plans must use `execution profile` metadata, not `recommended agent`.
 - Allowed Codex grouped-work complexity values are `low`, `medium`, `high`, and `unknown`. Do not emit `simple` on the Codex side.
-- Default Codex grouped routing is `low` -> `gpt-5.4-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `high` reasoning.
-- Implementation-test groups are the main exception to that default routing: if a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, route it to `gpt-5.4` with `xhigh` reasoning.
+- Default Codex grouped routing is `low` -> `gpt-5.4-mini` with `medium` reasoning, `medium` -> `gpt-5.3-codex` with `medium` reasoning, `high` -> `gpt-5.3-codex` with `high` reasoning, and `unknown` -> `gpt-5.4` with `xhigh` reasoning.
+- Implementation-test groups are the main exception to the normal planning flow: if a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `complexity: unknown` unless a similar nearby integration test already makes the required generated data and harness setup explicit; when it remains `unknown`, route it to `gpt-5.4` with `xhigh` reasoning.
+- During grouped execution, run a scoped explore delegate before the implementation delegate so the implementation agent receives the relevant files, current findings, dependency notes, and verification targets without repeating broad startup exploration.
 - Codex Spark is optional only for `medium` and `high` grouped work when the tradeoff is worth offering. If Spark is unavailable or declined, continue with the declared non-Spark execution profile.
 - Codex review skills own their review pass profiles under `dotfiles/.codex/skills/review-pr/references/` and `dotfiles/.codex/skills/code-review/references/`. Do not invent generic review agents outside those workflows.
 - Review flows should use the model and reasoning defaults declared by their pass profiles. Do not use Spark for review by default.
