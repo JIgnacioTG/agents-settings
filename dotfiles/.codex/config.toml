@@ -7,7 +7,8 @@ service_tier = "fast"
 multi_agent = true
 
 [agents]
-max_depth = 4
+max_threads = 30
+max_depth = 1
 
 [projects."/Users/ignacio"]
 trust_level = "trusted"

@@ -1,0 +1,6 @@
+---
+description: Working agreements for Cursor Agent (see ~/.cursor/AGENTS.md for full text)
+alwaysApply: true
+---
+
+Brainstorming and code review are opt-in only unless the user or an active plan explicitly requests them. For actionable work, execute directly with minimal blocking questions. When applying OpenSpec or grouped plans as written, skip extra TDD/verification skills except for explicit verification groups. After changes, run lint and typecheck on touched files, run related tests, then commit per project rules—never commit directly to `main` or `develop` without confirmation. Full agreements: `~/.cursor/AGENTS.md` when installed from this dotfiles repo.
