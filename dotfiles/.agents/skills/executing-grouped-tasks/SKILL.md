@@ -1,6 +1,6 @@
 ---
 name: executing-grouped-tasks
-description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session. When this skill applies, first run a scoped explore delegation for each ready group, then delegate implementation using the literal declared execution profile instead of implementing the grouped work inline.
+description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session. When this skill applies, run a scoped explore delegation only for groups that actually need it, then delegate implementation using the literal declared execution profile instead of implementing the grouped work inline.
 ---
 
 # Executing Grouped Tasks
@@ -42,7 +42,6 @@ If any field is missing, stop and return to `grouped-tasks`.
 
 - Execute work at the group level first, not task-by-task across group boundaries.
 - Delegation is mandatory when this skill applies.
-- Before implementation starts for a ready group, send a scoped explore delegate to gather the execution-critical repository context that the implementation delegate needs.
 - Delegate every ready group to its own implementation subagent or worker instead of implementing grouped work inline in the parent agent.
 - Read each group's `execution profile` literally.
 - Treat the declared `model` as the non-fast fallback profile and keep the declared `reasoning_effort` unless the user explicitly overrides it.
@@ -51,13 +50,15 @@ If any field is missing, stop and return to `grouped-tasks`.
   - `off` means keep this group on the declared non-fast fallback profile
   - `on` means force fast mode for this group even when the parent session is not already fast
 - If fast mode is active for the group after that resolution, keep Spark as a separate optional acceleration layer for eligible groups instead of treating fast mode as the final speed setting.
-- Keep the explore pass bounded to repository grounding, current implementation shape, dependency notes, and verification targets. It must not redesign or regroup the plan.
-- Pass the explore findings into the implementation delegation so the implementation agent starts with the relevant files, current findings, dependency notes, and verification expectations instead of rediscovering them.
+- Run a scoped explore delegate only when Spark is actually selected for the group after resolving the offer, or the group's `complexity` is `unknown`.
+- When a scoped explore pass is required, keep it bounded to repository grounding, current implementation shape, dependency notes, and verification targets. It must not redesign or regroup the plan.
+- When a scoped explore pass is required, pass the explore findings into the implementation delegation so the implementation agent starts with the relevant files, current findings, dependency notes, and verification expectations instead of rediscovering them.
+- When Spark is not selected and the group is not `unknown`, delegate implementation directly with the grouped plan and whatever execution-critical context is already available.
 - If only one group is ready, delegate that group anyway; single-group execution is not an exception.
 - If multiple ready groups are explicitly marked independent, delegate those groups in parallel.
 - If `spark_offer` is true, offer Spark only when it is actually worth the tradeoff, including when fast mode is already active for the group.
 - If fast mode is requested for a group but unavailable, surface that fallback and continue with the declared non-fast profile for that group.
-- Do not ask the implementation delegate to perform another broad startup exploration when the grouped plan and explore summary already make the work implementation-ready. Escalate only if a concrete blocker remains after the scoped explore pass.
+- Do not ask the implementation delegate to perform another broad startup exploration when the grouped plan, plus any scoped explore summary you already produced, already make the work implementation-ready. Escalate only if a concrete blocker remains.
 - If the grouped artifact says serialization is required, serialize.
 - After delegating a group, allow at least 10 minutes for startup and exploration before interrupting, killing, or redirecting that agent unless the user explicitly asks for it or a hard blocker or safety issue appears.
 - If delegation tooling is unavailable, stop and surface the blocker instead of executing the grouped work locally.
@@ -74,10 +75,10 @@ When a fresh session receives an existing grouped plan:
 - read all groups first
 - identify which groups are ready and which are blocked
 - preserve the declared group boundaries
-- run a scoped explore delegation for each ready group before delegating implementation for that group
 - resolve each ready group's `fast_mode` against the parent session state and any explicit user fast-mode request before delegating implementation
+- if Spark is actually selected for a ready group after that resolution, or the ready group is still `unknown`, run a scoped explore delegation for that group
 - delegate ready groups using the resolved execution profile
-- pass the full group contents, explore findings, relevant implementation context, dependency notes, and verification expectations into each implementation delegation
+- pass the full group contents, any explore findings, relevant implementation context, dependency notes, and verification expectations into each implementation delegation
 - treat early silence as normal exploration and do not interrupt a delegated group during its first 10 minutes unless the user explicitly requests it or a hard blocker or safety issue appears
 - reassess dependencies after each completed group
 
@@ -93,7 +94,8 @@ Before implementation starts:
 
 - Flattening groups into a generic task loop
 - Implementing grouped work inline in the parent agent instead of delegating each ready group
-- Skipping the scoped explore prepass and forcing the implementation delegate to rediscover repository context
+- Skipping the required scoped explore prepass for Spark-selected or `unknown` groups
+- Forcing a scoped explore prepass for implementation-ready non-Spark groups
 - Ignoring the declared `execution profile`
 - Forgetting to propagate parent fast mode or an explicit user fast-mode request to groups whose `fast_mode` is `inherit`
 - Replacing `execution profile` with implementation-agent aliases

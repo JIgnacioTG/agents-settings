@@ -14,6 +14,7 @@ For OpenSpec `tasks.md`, grouping is additive: preserve the artifact's existing 
 **Core principle:** every group must declare its work, dependency shape, execution mode, and implementation routing before execution starts.
 
 This skill shapes grouped artifacts. It does not execute already-grouped work.
+Grouped artifacts should be implementation-ready by default. A separate explore handoff is an execution-time tactic only for Spark-routed groups or groups that remain `unknown`.
 
 ## Required Output
 
@@ -78,9 +79,13 @@ Use this mapping for `recommended agent`:
 
 Use the literal agent ids above. Do not invent aliases such as `implementation-agent-low`, `implementation-agent-high`, or other derived names.
 
+For `medium` groups, default to `@implementation-agent-medium`. If the user explicitly wants Spark for that group, emit `@implementation-agent-spark` instead of `@implementation-agent-medium`.
+
 When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
 
-Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-medium` for `medium` work and `@implementation-agent` for `high` work.
+Direct delegation is the normal execution path for `low`, `medium`, and `high` groups that are not Spark-routed. Reserve the separate explore handoff for Spark-routed groups and `unknown` groups.
+
+Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-spark` only when the user explicitly asked for Spark. Otherwise emit `@implementation-agent-medium` for `medium` work and `@implementation-agent` for `high` work.
 
 ## OpenSpec Boundaries
 
@@ -121,6 +126,7 @@ If grouped work already exists and the request is to implement or continue imple
 - Routing `unknown` to anything except `@implementation-agent-thinker`
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
+- Emitting `@implementation-agent-spark` for new grouped routing when the user did not explicitly ask for Spark
 - Using `unknown` without naming the missing research
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off

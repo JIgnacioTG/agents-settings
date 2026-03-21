@@ -8,6 +8,7 @@ description: Use when generating or rewriting grouped OpenSpec task artifacts, s
 Turn multi-step implementation work into explicit task groups instead of flat lists.
 
 This skill shapes grouped implementation artifacts. It does not execute them.
+Grouped artifacts should be implementation-ready by default. A separate explore prepass is an execution-time tactic only when Spark is actually selected for a group or the group remains `unknown`.
 
 ## Automatic Trigger Cases
 
@@ -76,6 +77,8 @@ Use `gpt-5.4` only when the work is still unclear, research-heavy, not implement
 
 Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff, including when fast mode is already active or the user explicitly requested fast mode, because Spark can still be faster than regular fast mode.
 
+Keep `spark_offer: true` as an offer only. It does not by itself require a separate explore prepass, because non-Spark execution should normally delegate straight from the grouped artifact.
+
 When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
 
 ## Parallel Analysis
@@ -127,6 +130,7 @@ Use a compact grouped format like this:
 - Using `recommended agent`
 - Using `unknown` without naming the missing research
 - Offering Spark for `low` or `unknown`
+- Treating `spark_offer: true` as a reason to force a separate explore prepass before Spark is actually selected
 - Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
 - Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test

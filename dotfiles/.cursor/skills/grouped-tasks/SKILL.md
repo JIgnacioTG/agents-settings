@@ -14,6 +14,7 @@ For OpenSpec `tasks.md`, grouping is additive: preserve the artifact's existing 
 **Core principle:** every group must declare its work, dependency shape, execution mode, and implementation routing before execution starts.
 
 This skill shapes grouped artifacts. It does not execute already-grouped work.
+Grouped artifacts should be implementation-ready by default. A separate explore handoff is an execution-time tactic only for groups that remain `unknown`.
 
 ## Required Output
 
@@ -82,6 +83,8 @@ When an implementation-test group stays `unknown`, name the missing research exp
 
 **Legacy artifacts:** Older grouped plans may reference `@implementation-agent-spark`, `@implementation-agent-medium`, or `@implementation-agent-thinker`. Treat `@implementation-agent-medium` and `@implementation-agent-spark` as **`@implementation-agent-fast`**, and `@implementation-agent-thinker` as **`@implementation-agent`**, unless you explicitly regenerate the artifact with the routing table above.
 
+Direct delegation is the normal execution path for `low`, `medium`, and `high` groups. Reserve the separate explore handoff for `unknown` groups, even when a legacy artifact references `@implementation-agent-spark`.
+
 ## OpenSpec Boundaries
 
 For OpenSpec repositories:
@@ -122,6 +125,7 @@ If grouped work already exists and the request is to implement or continue imple
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
 - Using `unknown` without naming the missing research
+- Planning as if every grouped task needs a separate explore handoff before implementation
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off
 

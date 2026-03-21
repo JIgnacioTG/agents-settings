@@ -1,6 +1,6 @@
 ---
 name: executing-grouped-tasks
-description: "Use when implementing from an already-grouped `tasks.md` or grouped multi-step plan with explicit dependencies, parallelization, or `recommended agent` routing, especially after `openspec-apply-change` or `/opsx:apply` has selected the change, or when a fresh session is asked to continue grouped execution. When this skill applies, run a scoped `explore` handoff before delegating to the listed implementation agent so grouped work does not restart generic discovery."
+description: "Use when implementing from an already-grouped `tasks.md` or grouped multi-step plan with explicit dependencies, parallelization, or `recommended agent` routing, especially after `openspec-apply-change` or `/opsx:apply` has selected the change, or when a fresh session is asked to continue grouped execution. When this skill applies, run a scoped `explore` handoff only for groups that still need it so implementation-ready grouped work can delegate directly."
 ---
 
 # Executing Grouped Tasks
@@ -41,24 +41,25 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - read all groups before starting implementation
 - preserve existing group boundaries unless the user explicitly asks to rewrite them
 - identify which groups are ready now and which are blocked by dependencies
-- run a scoped `explore` subagent for each ready group to gather the exact files, implementation shape, dependency notes, and verification targets the implementation agent needs
+- run a scoped `explore` subagent only for ready groups whose `complexity` is `unknown`
 - delegate each ready group to the literal `recommended agent` named in that group
-- pass the full group text, explore findings, dependency notes, and verification expectations into that implementation delegation
+- pass the full group text, any explore findings, dependency notes, and verification expectations into that implementation delegation
 - after a group completes, reassess dependency state before starting newly unblocked groups
 - if multiple ready groups are independent and the grouped artifact says they can run in parallel, parallel execution is allowed; otherwise serialize
 
 ## Execution Contract
 
 - grouped artifacts must be executed at the group level first, not rewritten into an ungrouped task loop
-- before delegating implementation for a ready group, send a scoped `explore` subagent to gather execution-critical repository context for that specific group
+- before delegating implementation for a ready group, send a scoped `explore` subagent only when that group's `complexity` is `unknown`
 - every group must be delegated to the literal agent id named in `recommended agent`
 - if a group omits `recommended agent`, execution must stop
 - if the listed agent is unavailable, execution must stop
-- the `explore` handoff is for repository grounding only and must not redesign, regroup, or widen the approved plan
-- the implementation agent must use the grouped plan plus the explore summary as execution-ready context and should not restart broad startup exploration unless a concrete blocker remains
+- when a scoped `explore` handoff is required, keep it for repository grounding only and do not redesign, regroup, or widen the approved plan
+- the implementation agent must use the grouped plan, plus any scoped explore summary already produced, as execution-ready context and should not restart broad startup exploration unless a concrete blocker remains
+- when a group is not `unknown`, delegate implementation directly with the grouped plan and the execution-critical context already in hand
 - if execution begins with `subagent-driven-development` or another generic executor before honoring grouped routing, execution must stop and restart under this skill
 - do not invoke `requesting-code-review`, review agents, or review commands during grouped-plan execution unless the user or the plan explicitly names review
-- this pre-scoped handoff is especially important for legacy `@implementation-agent-spark` or `@implementation-agent-fast` routes so the implementation subagent can spend its context budget on implementation instead of discovery
+- reserve the pre-scoped handoff for `unknown` groups that still need repository grounding before implementation
 
 ## OpenSpec Boundaries
 
@@ -82,7 +83,8 @@ For OpenSpec repositories:
 
 - Rewriting grouped work into a generic per-task loop before delegation
 - Starting `subagent-driven-development` directly on a grouped artifact
-- Skipping the scoped `explore` handoff and forcing the implementation agent to rediscover repository context
+- Skipping the required scoped `explore` handoff for an `unknown` group
+- Forcing a scoped `explore` handoff for an implementation-ready non-`unknown` group
 - Auto-invoking `requesting-code-review` when no review was requested
 - Ignoring dependency gates between groups
 - Treating `recommended agent` as optional
