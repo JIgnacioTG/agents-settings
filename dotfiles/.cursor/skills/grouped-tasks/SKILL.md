@@ -35,6 +35,7 @@ Every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `branch suggestion`
 - `recommended agent`
 
 When the artifact is OpenSpec `tasks.md`, keep the `tasks` content in the repository's existing section format, for example:
@@ -44,7 +45,7 @@ Section 1. CRUD
 - 1.1 [ ] Add the create view
 ```
 
-Add `goal`, `complexity`, `dependencies`, `parallelization`, and `recommended agent` around that section content. Do not replace the section headings or checkbox list with a new task-body format.
+Add `goal`, `complexity`, `dependencies`, `parallelization`, `branch suggestion`, and `recommended agent` around that section content. Do not replace the section headings or checkbox list with a new task-body format.
 
 Allowed complexity values:
 
@@ -54,6 +55,8 @@ Allowed complexity values:
 - `unknown`
 
 `unknown` is valid only when the missing research is stated explicitly.
+
+If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, any required merge group, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
 
 Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
 
@@ -65,8 +68,12 @@ Before implementation starts, include an explicit cross-group analysis that stat
 - which groups must stay serialized
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
+- which branch suggestion belongs to each group
+- which parallel groups should use detached worktrees by default
 
-If nothing can run in parallel, say so explicitly.
+If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
+
+If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
 ## Routing
 
@@ -81,9 +88,7 @@ Use the literal agent ids above. Do not invent aliases such as `implementation-a
 
 When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
 
-**Legacy artifacts:** Older grouped plans may reference `@implementation-agent-spark`, `@implementation-agent-medium`, or `@implementation-agent-thinker`. Treat `@implementation-agent-medium` and `@implementation-agent-spark` as **`@implementation-agent-fast`**, and `@implementation-agent-thinker` as **`@implementation-agent`**, unless you explicitly regenerate the artifact with the routing table above.
-
-Direct delegation is the normal execution path for `low`, `medium`, and `high` groups. Reserve the separate explore handoff for `unknown` groups, even when a legacy artifact references `@implementation-agent-spark`.
+Direct delegation is the normal execution path for `low`, `medium`, and `high` groups. Reserve the separate explore handoff for `unknown` groups.
 
 ## OpenSpec Boundaries
 
@@ -120,12 +125,15 @@ If grouped work already exists and the request is to implement or continue imple
 - Rewriting OpenSpec sectioned checklist tasks into a different task-body format
 - Group without complexity
 - Group without dependency notes
+- Group without `branch suggestion`
 - Missing cross-group parallelization analysis
+- Missing `parallel execution trace` when parallel work exists
 - Routing `unknown` to anything except `@implementation-agent`
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
 - Using `unknown` without naming the missing research
 - Planning as if every grouped task needs a separate explore handoff before implementation
+- Omitting the merge group when downstream serialized work depends on earlier parallel groups
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off
 
@@ -145,6 +153,8 @@ If grouped work already exists and the request is to implement or continue imple
 - Flat list for multi-step work
 - OpenSpec `tasks.md` sections rewritten instead of preserved
 - Missing `parallelization`
+- Missing `branch suggestion`
+- Missing `parallel execution trace` for parallel work
 - Missing `recommended agent`
 - More than one complexity per group
 - `unknown` with no explanation

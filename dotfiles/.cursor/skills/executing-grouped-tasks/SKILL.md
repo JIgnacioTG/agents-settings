@@ -20,9 +20,12 @@ Before execution starts, the active grouped artifact must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `branch suggestion`
 - `recommended agent`
 
 If any field is missing, stop and return to `grouped-tasks` to repair the artifact before implementing.
+
+If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, merge-group requirements, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
 
 ## Precedence
 
@@ -42,10 +45,11 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - preserve existing group boundaries unless the user explicitly asks to rewrite them
 - identify which groups are ready now and which are blocked by dependencies
 - run a scoped `explore` subagent only for ready groups whose `complexity` is `unknown`
+- if parallel groups are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
 - delegate each ready group to the literal `recommended agent` named in that group
 - pass the full group text, any explore findings, dependency notes, and verification expectations into that implementation delegation
 - after a group completes, reassess dependency state before starting newly unblocked groups
-- if multiple ready groups are independent and the grouped artifact says they can run in parallel, parallel execution is allowed; otherwise serialize
+- if multiple ready groups are independent and the grouped artifact says they can run in parallel, parallel execution is allowed with detached worktrees by default unless the user explicitly requested branch-per-group execution; otherwise serialize
 
 ## Execution Contract
 
@@ -57,6 +61,9 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - when a scoped `explore` handoff is required, keep it for repository grounding only and do not redesign, regroup, or widen the approved plan
 - the implementation agent must use the grouped plan, plus any scoped explore summary already produced, as execution-ready context and should not restart broad startup exploration unless a concrete blocker remains
 - when a group is not `unknown`, delegate implementation directly with the grouped plan and the execution-critical context already in hand
+- if multiple ready groups are explicitly marked independent, delegate those groups in parallel only after confirming the artifact's `parallel execution trace`
+- when parallel groups are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution
+- if downstream serialized work depends on multiple earlier parallel groups, require the declared merge group to complete before starting that downstream serialized work
 - if execution begins with `subagent-driven-development` or another generic executor before honoring grouped routing, execution must stop and restart under this skill
 - do not invoke `requesting-code-review`, review agents, or review commands during grouped-plan execution unless the user or the plan explicitly names review
 - reserve the pre-scoped handoff for `unknown` groups that still need repository grounding before implementation
@@ -90,6 +97,7 @@ For OpenSpec repositories:
 - Treating `recommended agent` as optional
 - Letting the implementation agent restart broad discovery after it already received a scoped explore summary
 - Running groups in parallel when the grouped artifact says serialization is required
+- Starting downstream serialized work before the declared merge group completes
 
 ## Rationalization Table
 
@@ -104,6 +112,8 @@ For OpenSpec repositories:
 
 - Fresh-session execution that skips straight to a generic executor
 - Any automatic `requesting-code-review` invocation without explicit review request
+- Missing `branch suggestion`
+- Missing `parallel execution trace` for parallel work
 - Missing `recommended agent`
 - Group execution that ignores dependencies
 - Group execution that ignores declared parallelization

@@ -8,7 +8,7 @@ description: Use when generating or rewriting grouped OpenSpec task artifacts, s
 Turn multi-step implementation work into explicit task groups instead of flat lists.
 
 This skill shapes grouped implementation artifacts. It does not execute them.
-Grouped artifacts should be implementation-ready by default. A separate explore prepass is an execution-time tactic only when Spark is actually selected for a group or the group remains `unknown`.
+Grouped artifacts should be implementation-ready by default. A separate explore prepass is an execution-time tactic only when a group remains `unknown`. Spark is an implementation option only and never the explore route.
 
 ## Automatic Trigger Cases
 
@@ -32,6 +32,7 @@ Every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `branch suggestion`
 - `execution profile`
 
 The `execution profile` must declare:
@@ -51,6 +52,8 @@ Allowed Codex complexity values:
 `simple` is not valid on the Codex side.
 
 `unknown` is valid only when the missing research is named explicitly.
+
+If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, any required merge group, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
 
 ## Routing Contract
 
@@ -77,7 +80,7 @@ Use `gpt-5.4` only when the work is still unclear, research-heavy, not implement
 
 Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff, including when fast mode is already active or the user explicitly requested fast mode, because Spark can still be faster than regular fast mode.
 
-Keep `spark_offer: true` as an offer only. It does not by itself require a separate explore prepass, because non-Spark execution should normally delegate straight from the grouped artifact.
+Keep `spark_offer: true` as an offer only. It does not by itself require a separate explore prepass.
 
 When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
 
@@ -89,8 +92,12 @@ Before implementation starts, include explicit cross-group analysis that states:
 - which groups must stay serialized
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
+- which branch suggestion belongs to each group
+- which parallel groups should use detached worktrees by default
 
-If nothing can run in parallel, say so explicitly.
+If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
+
+If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
 ## Output Shape
 
@@ -106,11 +113,23 @@ Use a compact grouped format like this:
 - complexity: high
 - dependencies: none
 - parallelization: can run in parallel with Group 2
+- branch suggestion: `feat/review-entrypoint`
 - execution profile:
   - model: gpt-5.3-codex
   - reasoning_effort: high
   - spark_offer: true
   - fast_mode: inherit
+```
+
+When parallel work exists, add a compact trace like this:
+
+```markdown
+### Parallel Execution Trace
+
+- fan-out: Group 1 || Group 2
+- isolation: create detached worktrees for Group 1 and Group 2 by default
+- merge: Group 3 merges Group 1 and Group 2 before downstream serialized work
+- resume serialization: Group 4 starts after Group 3
 ```
 
 ## Boundaries
@@ -126,12 +145,15 @@ Use a compact grouped format like this:
 - Flat task lists
 - Emitting `simple`
 - Missing `execution profile`
+- Missing `branch suggestion`
+- Missing `parallel execution trace` when parallel work exists
 - Missing `fast_mode`
 - Using `recommended agent`
 - Using `unknown` without naming the missing research
 - Offering Spark for `low` or `unknown`
-- Treating `spark_offer: true` as a reason to force a separate explore prepass before Spark is actually selected
+- Treating `spark_offer: true` as a reason to force a separate explore prepass
 - Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
 - Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
+- Omitting the merge group when downstream serialized work depends on earlier parallel groups
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Treating `gpt-5.4` as the default for planned implementation

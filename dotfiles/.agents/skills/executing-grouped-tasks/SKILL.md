@@ -1,6 +1,6 @@
 ---
 name: executing-grouped-tasks
-description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session. When this skill applies, run a scoped explore delegation only for groups that actually need it, then delegate implementation using the literal declared execution profile instead of implementing the grouped work inline.
+description: Use when implementing from an existing grouped OpenSpec tasks artifact or grouped Codex/superpower implementation plan that already declares dependencies, parallelization, complexity, and execution-profile routing, especially before coding starts or when continuing grouped execution in a fresh session. When this skill applies, run a scoped explore delegation only for groups that actually need it, never with Spark, then delegate implementation using the literal declared execution profile instead of implementing the grouped work inline.
 ---
 
 # Executing Grouped Tasks
@@ -27,6 +27,7 @@ Before execution starts, every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `branch suggestion`
 - `execution profile`
 
 The `execution profile` must include:
@@ -37,6 +38,8 @@ The `execution profile` must include:
 - `fast_mode`
 
 If any field is missing, stop and return to `grouped-tasks`.
+
+If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, merge-group requirements, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
 
 ## Execution Contract
 
@@ -50,12 +53,15 @@ If any field is missing, stop and return to `grouped-tasks`.
   - `off` means keep this group on the declared non-fast fallback profile
   - `on` means force fast mode for this group even when the parent session is not already fast
 - If fast mode is active for the group after that resolution, keep Spark as a separate optional acceleration layer for eligible groups instead of treating fast mode as the final speed setting.
-- Run a scoped explore delegate only when Spark is actually selected for the group after resolving the offer, or the group's `complexity` is `unknown`.
+- Run a scoped explore delegate only when the group's `complexity` is `unknown`.
+- Never use Spark for the explore delegate, and never trigger explore just because `spark_offer` exists or Spark is selected for implementation.
 - When a scoped explore pass is required, keep it bounded to repository grounding, current implementation shape, dependency notes, and verification targets. It must not redesign or regroup the plan.
 - When a scoped explore pass is required, pass the explore findings into the implementation delegation so the implementation agent starts with the relevant files, current findings, dependency notes, and verification expectations instead of rediscovering them.
-- When Spark is not selected and the group is not `unknown`, delegate implementation directly with the grouped plan and whatever execution-critical context is already available.
+- When the group is not `unknown`, delegate implementation directly with the grouped plan and whatever execution-critical context is already available.
 - If only one group is ready, delegate that group anyway; single-group execution is not an exception.
-- If multiple ready groups are explicitly marked independent, delegate those groups in parallel.
+- If multiple ready groups are explicitly marked independent, delegate those groups in parallel only after confirming the artifact's `parallel execution trace`.
+- When parallel groups are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution.
+- If downstream serialized work depends on multiple earlier parallel groups, require the declared merge group to complete before starting that downstream serialized work.
 - If `spark_offer` is true, offer Spark only when it is actually worth the tradeoff, including when fast mode is already active for the group.
 - If fast mode is requested for a group but unavailable, surface that fallback and continue with the declared non-fast profile for that group.
 - Do not ask the implementation delegate to perform another broad startup exploration when the grouped plan, plus any scoped explore summary you already produced, already make the work implementation-ready. Escalate only if a concrete blocker remains.
@@ -76,7 +82,8 @@ When a fresh session receives an existing grouped plan:
 - identify which groups are ready and which are blocked
 - preserve the declared group boundaries
 - resolve each ready group's `fast_mode` against the parent session state and any explicit user fast-mode request before delegating implementation
-- if Spark is actually selected for a ready group after that resolution, or the ready group is still `unknown`, run a scoped explore delegation for that group
+- if the ready group is still `unknown`, run a scoped explore delegation for that group without Spark
+- if parallel groups are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
 - delegate ready groups using the resolved execution profile
 - pass the full group contents, any explore findings, relevant implementation context, dependency notes, and verification expectations into each implementation delegation
 - treat early silence as normal exploration and do not interrupt a delegated group during its first 10 minutes unless the user explicitly requests it or a hard blocker or safety issue appears
@@ -94,14 +101,16 @@ Before implementation starts:
 
 - Flattening groups into a generic task loop
 - Implementing grouped work inline in the parent agent instead of delegating each ready group
-- Skipping the required scoped explore prepass for Spark-selected or `unknown` groups
-- Forcing a scoped explore prepass for implementation-ready non-Spark groups
+- Skipping the required scoped explore prepass for an `unknown` group
+- Using Spark for the explore delegate or letting Spark selection trigger the explore prepass
+- Forcing a scoped explore prepass for implementation-ready known groups
 - Ignoring the declared `execution profile`
 - Forgetting to propagate parent fast mode or an explicit user fast-mode request to groups whose `fast_mode` is `inherit`
 - Replacing `execution profile` with implementation-agent aliases
 - Treating single-group execution as a reason to skip delegation
 - Allowing the implementation delegate to restart broad exploration after it already received the grouped plan and explore summary
-- Treating fast mode as a reason to stop offering Spark on eligible groups
+- Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
 - Interrupting or killing a delegated group too early while it is still exploring startup context
 - Running review automatically after implementation
 - Running groups in parallel when dependencies say not to
+- Starting downstream serialized work before the declared merge group completes

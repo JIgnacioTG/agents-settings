@@ -14,7 +14,7 @@ For OpenSpec `tasks.md`, grouping is additive: preserve the artifact's existing 
 **Core principle:** every group must declare its work, dependency shape, execution mode, and implementation routing before execution starts.
 
 This skill shapes grouped artifacts. It does not execute already-grouped work.
-Grouped artifacts should be implementation-ready by default. A separate explore handoff is an execution-time tactic only for Spark-routed groups or groups that remain `unknown`.
+Grouped artifacts should be implementation-ready by default. A separate explore handoff is an execution-time tactic only for `@implementation-agent-thinker` groups or groups that remain `unknown`. Spark is an implementation delegation option only and never the explore route.
 
 ## Required Output
 
@@ -35,6 +35,7 @@ Every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `branch suggestion`
 - `recommended agent`
 
 When the artifact is OpenSpec `tasks.md`, keep the `tasks` content in the repository's existing section format, for example:
@@ -44,7 +45,7 @@ Section 1. CRUD
 - 1.1 [ ] Add the create view
 ```
 
-Add `goal`, `complexity`, `dependencies`, `parallelization`, and `recommended agent` around that section content. Do not replace the section headings or checkbox list with a new task-body format.
+Add `goal`, `complexity`, `dependencies`, `parallelization`, `branch suggestion`, and `recommended agent` around that section content. Do not replace the section headings or checkbox list with a new task-body format.
 
 Allowed complexity values:
 
@@ -54,6 +55,8 @@ Allowed complexity values:
 - `unknown`
 
 `unknown` is valid only when the missing research is stated explicitly.
+
+If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, any required merge group, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
 
 Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
 
@@ -65,8 +68,12 @@ Before implementation starts, include an explicit cross-group analysis that stat
 - which groups must stay serialized
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
+- which branch suggestion belongs to each group
+- which parallel groups should use detached worktrees by default
 
-If nothing can run in parallel, say so explicitly.
+If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
+
+If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
 ## Routing
 
@@ -83,7 +90,7 @@ For `medium` groups, default to `@implementation-agent-medium`. If the user expl
 
 When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
 
-Direct delegation is the normal execution path for `low`, `medium`, and `high` groups that are not Spark-routed. Reserve the separate explore handoff for Spark-routed groups and `unknown` groups.
+Direct delegation is the normal execution path for `low`, `medium`, and `high` groups, including Spark-routed groups. Reserve the separate explore handoff for `@implementation-agent-thinker` or `unknown` groups, and never use Spark for explore.
 
 Legacy plans that already reference `@implementation-agent-spark` may still be executed as-is for backward compatibility, but new grouped routing should emit `@implementation-agent-spark` only when the user explicitly asked for Spark. Otherwise emit `@implementation-agent-medium` for `medium` work and `@implementation-agent` for `high` work.
 
@@ -122,12 +129,15 @@ If grouped work already exists and the request is to implement or continue imple
 - Rewriting OpenSpec sectioned checklist tasks into a different task-body format
 - Group without complexity
 - Group without dependency notes
+- Group without `branch suggestion`
 - Missing cross-group parallelization analysis
+- Missing `parallel execution trace` when parallel work exists
 - Routing `unknown` to anything except `@implementation-agent-thinker`
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
 - Emitting `@implementation-agent-spark` for new grouped routing when the user did not explicitly ask for Spark
 - Using `unknown` without naming the missing research
+- Omitting the merge group when downstream serialized work depends on earlier parallel groups
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off
 
@@ -147,6 +157,8 @@ If grouped work already exists and the request is to implement or continue imple
 - Flat list for multi-step work
 - OpenSpec `tasks.md` sections rewritten instead of preserved
 - Missing `parallelization`
+- Missing `branch suggestion`
+- Missing `parallel execution trace` for parallel work
 - Missing `recommended agent`
 - More than one complexity per group
 - `unknown` with no explanation
