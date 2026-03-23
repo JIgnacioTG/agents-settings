@@ -1,6 +1,6 @@
 ---
 name: grouped-tasks
-description: Use when generating or rewriting grouped OpenSpec task artifacts, superpower plans, or Codex multi-step implementation plans so the output carries explicit complexity, dependencies, parallelization, and execution-profile routing before execution starts.
+description: Use when generating or rewriting grouped OpenSpec task artifacts, superpower plans, or Codex multi-step implementation plans so the output carries explicit complexity, dependencies, parallelization, execution-profile routing, and serialized-lane reuse metadata before execution starts.
 ---
 
 # Grouped Tasks
@@ -41,6 +41,17 @@ The `execution profile` must declare:
 - `reasoning_effort`
 - `spark_offer`
 - `fast_mode`
+
+When 2 or more adjacent groups stay serialized and are intended to reuse one implementation delegate, each participating group must also include:
+
+- `serialization lane`
+- `agent reuse`
+
+`agent reuse` must be one of:
+
+- `start`
+- `continue`
+- `none`
 
 Allowed Codex complexity values:
 
@@ -84,6 +95,30 @@ Keep `spark_offer: true` as an offer only. It does not by itself require a separ
 
 When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
 
+## Serialized Reuse
+
+When 2 or more adjacent groups must stay serialized, reuse one implementation lane only when their declared `execution profile` matches exactly.
+
+For Codex, compare all of:
+
+- `model`
+- `reasoning_effort`
+- `spark_offer`
+- `fast_mode`
+
+Complexity alone is not enough.
+
+When reuse applies:
+
+- give every participating group the same `serialization lane`
+- mark the first group in that lane with `agent reuse: start`
+- mark each later group in that lane with `agent reuse: continue`
+- use `agent reuse: none` when a serialized group intentionally starts a fresh lane
+
+Stop the lane at any execution-profile mismatch, dependency break, parallel fan-out or fan-in boundary, or merge group.
+
+Serialized-lane reuse is additive. Keep each group as its own execution unit and preserve the declared dependencies and ordering.
+
 ## Parallel Analysis
 
 Before implementation starts, include explicit cross-group analysis that states:
@@ -93,6 +128,7 @@ Before implementation starts, include explicit cross-group analysis that states:
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
 - which branch suggestion belongs to each group
+- which serialized groups share the same implementation lane
 - which parallel groups should use detached worktrees by default
 
 If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
@@ -114,6 +150,40 @@ Use a compact grouped format like this:
 - dependencies: none
 - parallelization: can run in parallel with Group 2
 - branch suggestion: `feat/review-entrypoint`
+- execution profile:
+  - model: gpt-5.3-codex
+  - reasoning_effort: high
+  - spark_offer: true
+  - fast_mode: inherit
+```
+
+When serialized same-profile reuse applies, extend the group format like this:
+
+```markdown
+### Group 1
+
+- goal: Implement the review entrypoint
+- complexity: high
+- dependencies: none
+- parallelization: serialized before Group 2
+- branch suggestion: `feat/review-entrypoint`
+- serialization lane: `lane-1`
+- agent reuse: start
+- execution profile:
+  - model: gpt-5.3-codex
+  - reasoning_effort: high
+  - spark_offer: true
+  - fast_mode: inherit
+
+### Group 2
+
+- goal: Wire the follow-up validation flow
+- complexity: high
+- dependencies: Group 1
+- parallelization: serialized after Group 1
+- branch suggestion: `feat/review-validation`
+- serialization lane: `lane-1`
+- agent reuse: continue
 - execution profile:
   - model: gpt-5.3-codex
   - reasoning_effort: high
@@ -149,11 +219,14 @@ When parallel work exists, add a compact trace like this:
 - Missing `parallel execution trace` when parallel work exists
 - Missing `fast_mode`
 - Using `recommended agent`
+- Missing `serialization lane` or `agent reuse` on a serialized reuse chain
 - Using `unknown` without naming the missing research
 - Offering Spark for `low` or `unknown`
+- Reusing a lane because complexity matches even though the `execution profile` differs
 - Treating `spark_offer: true` as a reason to force a separate explore prepass
 - Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
 - Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
+- Carrying the same lane across a dependency break, merge group, or parallel boundary
 - Omitting the merge group when downstream serialized work depends on earlier parallel groups
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Treating `gpt-5.4` as the default for planned implementation

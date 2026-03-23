@@ -1,6 +1,6 @@
 ---
 name: executing-grouped-tasks
-description: "Use when implementing from an already-grouped `tasks.md` or grouped multi-step plan with explicit dependencies, parallelization, or `recommended agent` routing, especially after `openspec-apply-change` or `/opsx:apply` has selected the change, or when a fresh session is asked to continue grouped execution. When this skill applies, run a scoped `explore` handoff only for groups that still need it, never with Spark, so implementation-ready grouped work can delegate directly."
+description: "Use when implementing from an already-grouped `tasks.md` or grouped multi-step plan with explicit dependencies, parallelization, or `recommended agent` routing, especially after `openspec-apply-change` or `/opsx:apply` has selected the change, or when a fresh session is asked to continue grouped execution. When this skill applies, execute grouped work lane by lane and reuse one delegate across adjacent serialized same-agent groups when the artifact or legacy inference allows it."
 ---
 
 # Executing Grouped Tasks
@@ -25,6 +25,8 @@ Before execution starts, the active grouped artifact must include:
 
 If any field is missing, stop and return to `grouped-tasks` to repair the artifact before implementing.
 
+If the artifact explicitly declares serialized delegate reuse, every participating group must also include `serialization lane` and `agent reuse`. Legacy artifacts may omit those fields; inference is allowed only as a backward-compatibility fallback.
+
 If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, merge-group requirements, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
 
 ## Precedence
@@ -44,30 +46,37 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - read all groups before starting implementation
 - preserve existing group boundaries unless the user explicitly asks to rewrite them
 - identify which groups are ready now and which are blocked by dependencies
-- run a scoped `explore` subagent only for ready groups whose `recommended agent` is `@implementation-agent-thinker`, or whose `complexity` is `unknown`
-- never use `@implementation-agent-spark` for the explore handoff, and never trigger explore only because a group is Spark-routed
-- if parallel groups are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
-- delegate each ready group to the literal `recommended agent` named in that group
-- pass the full group text, any explore findings, dependency notes, and verification expectations into that implementation delegation
+- if serialized reuse metadata is present, form ready lanes from `serialization lane` plus `agent reuse`
+- if serialized reuse metadata is absent, infer ready serialized lanes only for legacy artifacts whose adjacent serialized groups share the same literal `recommended agent`
+- run a scoped `explore` subagent when a lane's current group is thinker-routed, Spark-routed, or `unknown`
+- never use `@implementation-agent-spark` as the explore handoff itself
+- if parallel lanes are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
+- delegate each ready lane to the literal `recommended agent` named in that lane's current group
+- pass the full group text for the current lane position, any explore findings, dependency notes, and verification expectations into that implementation delegation
 - after a group completes, reassess dependency state before starting newly unblocked groups
-- if multiple ready groups are independent and the grouped artifact says they can run in parallel, parallel execution is allowed with detached worktrees by default unless the user explicitly requested branch-per-group execution; otherwise serialize
+- if multiple ready lanes are independent and the grouped artifact says they can run in parallel, parallel execution is allowed with detached worktrees by default unless the user explicitly requested branch-per-group execution; otherwise serialize
 
 ## Execution Contract
 
 - grouped artifacts must be executed at the group level first, not rewritten into an ungrouped task loop
-- before delegating implementation for a ready group, send a scoped `explore` subagent only when that group's `recommended agent` is `@implementation-agent-thinker`, or the group's `complexity` is `unknown`
-- every group must be delegated to the literal agent id named in `recommended agent`
+- delegate every ready parallel lane instead of forcing one fresh delegate per serialized group
+- keep group boundaries intact, but allow one long-lived delegate lane to handle 2 or more adjacent serialized groups when reuse is valid
+- if `serialization lane` and `agent reuse` are present, honor them literally
+- if those fields are absent, infer a reusable serialized lane only for legacy artifacts whose adjacent serialized groups share the same literal `recommended agent`
+- before delegating implementation for a lane's current group, send a scoped `explore` subagent when that group's `recommended agent` is `@implementation-agent-thinker` or `@implementation-agent-spark`, or the group's `complexity` is `unknown`
+- every lane must delegate to the literal agent id named in the current group's `recommended agent`
 - if a group omits `recommended agent`, execution must stop
 - if the listed agent is unavailable, execution must stop
 - when a scoped `explore` handoff is required, keep it for repository grounding only and do not redesign, regroup, or widen the approved plan
 - the implementation agent must use the grouped plan, plus any scoped explore summary already produced, as execution-ready context and should not restart broad startup exploration unless a concrete blocker remains
+- when a lane already has enough repository context for its next serialized group, pass the next group brief directly instead of restarting broad exploration
 - when a group is routed to `@implementation-agent-fast`, `@implementation-agent-medium`, `@implementation-agent-spark`, or `@implementation-agent`, delegate implementation directly with the grouped plan and the execution-critical context already in hand unless a concrete blocker appears
-- if multiple ready groups are explicitly marked independent, delegate those groups in parallel only after confirming the artifact's `parallel execution trace`
-- when parallel groups are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution
+- if multiple ready lanes are explicitly marked independent, delegate those lanes in parallel only after confirming the artifact's `parallel execution trace`
+- when parallel lanes are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution
 - if downstream serialized work depends on multiple earlier parallel groups, require the declared merge group to complete before starting that downstream serialized work
 - if execution begins with `subagent-driven-development` or another generic executor before honoring grouped routing, execution must stop and restart under this skill
 - do not invoke `requesting-code-review`, review agents, or review commands during grouped-plan execution unless the user or the plan explicitly names review
-- this pre-scoped handoff is for thinker-routed or `unknown` groups that still need repository grounding before implementation; Spark stays implementation-only
+- this pre-scoped handoff is for thinker-routed, Spark-routed, or `unknown` groups that still need repository grounding before implementation; `@implementation-agent-spark` remains implementation-only and must not be the explore delegate itself
 
 ## OpenSpec Boundaries
 
@@ -91,13 +100,15 @@ For OpenSpec repositories:
 
 - Rewriting grouped work into a generic per-task loop before delegation
 - Starting `subagent-driven-development` directly on a grouped artifact
-- Skipping the required scoped `explore` handoff for a thinker-routed or `unknown` group
-- Using `@implementation-agent-spark` for the explore handoff or letting Spark routing trigger the explore prepass
+- Skipping the required scoped `explore` handoff for a thinker-routed, Spark-routed, or `unknown` group
+- Using `@implementation-agent-spark` as the explore handoff itself
 - Forcing a scoped `explore` handoff for an implementation-ready known group
 - Auto-invoking `requesting-code-review` when no review was requested
 - Ignoring dependency gates between groups
 - Treating `recommended agent` as optional
 - Letting the implementation agent restart broad discovery after it already received a scoped explore summary
+- Reusing a lane because complexity matches even though the `recommended agent` differs
+- Ignoring `serialization lane` or `agent reuse` when the artifact already declares them
 - Running groups in parallel when the grouped artifact says serialization is required
 - Starting downstream serialized work before the declared merge group completes
 

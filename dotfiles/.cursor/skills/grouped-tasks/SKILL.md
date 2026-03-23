@@ -38,6 +38,17 @@ Every group must include:
 - `branch suggestion`
 - `recommended agent`
 
+When 2 or more adjacent groups stay serialized and are intended to reuse one implementation delegate, each participating group must also include:
+
+- `serialization lane`
+- `agent reuse`
+
+`agent reuse` must be one of:
+
+- `start`
+- `continue`
+- `none`
+
 When the artifact is OpenSpec `tasks.md`, keep the `tasks` content in the repository's existing section format, for example:
 
 ```markdown
@@ -69,6 +80,7 @@ Before implementation starts, include an explicit cross-group analysis that stat
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
 - which branch suggestion belongs to each group
+- which serialized groups share the same implementation lane
 - which parallel groups should use detached worktrees by default
 
 If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
@@ -89,6 +101,23 @@ Use the literal agent ids above. Do not invent aliases such as `implementation-a
 When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
 
 Direct delegation is the normal execution path for `low`, `medium`, and `high` groups. Reserve the separate explore handoff for `unknown` groups.
+
+## Serialized Reuse
+
+When 2 or more adjacent groups must stay serialized, reuse one implementation lane only when they name the same literal `recommended agent`.
+
+Complexity alone is not enough.
+
+When reuse applies:
+
+- give every participating group the same `serialization lane`
+- mark the first group in that lane with `agent reuse: start`
+- mark each later group in that lane with `agent reuse: continue`
+- use `agent reuse: none` when a serialized group intentionally starts a fresh lane
+
+Stop the lane at any `recommended agent` mismatch, dependency break, parallel fan-out or fan-in boundary, or merge group.
+
+Serialized-lane reuse is additive. Keep each group as its own execution unit and preserve the declared dependencies and ordering.
 
 ## OpenSpec Boundaries
 
@@ -131,8 +160,11 @@ If grouped work already exists and the request is to implement or continue imple
 - Routing `unknown` to anything except `@implementation-agent`
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Invented agent aliases instead of the literal configured agent ids
+- Missing `serialization lane` or `agent reuse` on a serialized reuse chain
 - Using `unknown` without naming the missing research
+- Reusing a lane because complexity matches even though the `recommended agent` differs
 - Planning as if every grouped task needs a separate explore handoff before implementation
+- Carrying the same lane across a dependency break, merge group, or parallel boundary
 - Omitting the merge group when downstream serialized work depends on earlier parallel groups
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off
