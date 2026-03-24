@@ -27,8 +27,11 @@ Before execution starts, every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `project scope`
 - `branch suggestion`
 - `execution profile`
+
+`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
 
 The `execution profile` must include:
 
@@ -41,7 +44,7 @@ If any field is missing, stop and return to `grouped-tasks`.
 
 If the artifact explicitly declares serialized delegate reuse, every participating group must also include `serialization lane` and `agent reuse`. Legacy artifacts may omit those fields; inference is allowed only as a backward-compatibility fallback.
 
-If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, merge-group requirements, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
+If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, each group's `project scope`, the fan-in gate type for downstream work, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
 
 ## Execution Contract
 
@@ -67,7 +70,9 @@ If any groups are marked parallel-capable, the active artifact must also include
 - If only one lane is ready, delegate that lane anyway; single-lane execution is not an exception.
 - If multiple ready lanes are explicitly marked independent, delegate those lanes in parallel only after confirming the artifact's `parallel execution trace`.
 - When parallel lanes are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution.
-- If downstream serialized work depends on multiple earlier parallel groups, require the declared merge group to complete before starting that downstream serialized work.
+- If downstream serialized work depends on multiple earlier parallel groups in the same `project scope`, require the declared merge group to complete before starting that downstream serialized work.
+- If that fan-in spans different `project scope` values and the artifact marks it completion-only, wait for the upstream groups to finish and then continue without merge orchestration.
+- If a parallel fan-in exists but the artifact does not make the gate explicit, stop and repair the artifact with `grouped-tasks`.
 - If `spark_offer` is true, offer Spark only when it is actually worth the tradeoff, including when fast mode is already active for the group.
 - If fast mode is requested for a group but unavailable, surface that fallback and continue with the declared non-fast profile for that group.
 - Do not ask the lane delegate to perform another broad startup exploration when the grouped plan, plus any scoped explore summary you already produced, already make the work implementation-ready. Escalate only if a concrete blocker remains.
@@ -91,7 +96,7 @@ When a fresh session receives an existing grouped plan:
 - if serialized reuse metadata is present, form ready lanes from `serialization lane` plus `agent reuse`
 - if serialized reuse metadata is absent, infer ready serialized lanes only for legacy artifacts whose adjacent serialized groups share the same resolved execution profile
 - if a lane's current group is `unknown`, or Spark is selected for that group's implementation path, run the lane's scoped explore phase before implementation resumes
-- if parallel lanes are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
+- if parallel lanes are ready, confirm the current artifact also includes the `parallel execution trace` and the correct same-scope merge or cross-scope completion gate before delegating them
 - delegate ready lanes using the resolved execution profile
 - pass the full group contents for the current lane position, any explore findings, relevant implementation context, dependency notes, and verification expectations into each implementation delegation
 - treat early silence as normal exploration and do not interrupt a delegated lane during its first 10 minutes unless the user explicitly requests it or a hard blocker or safety issue appears
@@ -113,6 +118,7 @@ Before implementation starts:
 - Using Spark for the explore delegate
 - Forcing a scoped explore phase for implementation-ready known groups that already have sufficient lane context
 - Ignoring the declared `execution profile`
+- Missing or ignoring `project scope` on grouped execution
 - Forgetting to propagate parent fast mode or an explicit user fast-mode request to groups whose `fast_mode` is `inherit`
 - Replacing `execution profile` with implementation-agent aliases
 - Treating single-lane execution as a reason to skip delegation
@@ -123,4 +129,5 @@ Before implementation starts:
 - Interrupting or killing a delegated lane too early while it is still exploring startup context
 - Running review automatically after implementation
 - Running groups in parallel when dependencies say not to
-- Starting downstream serialized work before the declared merge group completes
+- Starting same-`project scope` downstream serialized work before the declared merge group completes
+- Forcing merge handling when cross-`project scope` fan-in is explicitly completion-only

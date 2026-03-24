@@ -20,14 +20,17 @@ Before execution starts, the active grouped artifact must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `project scope`
 - `branch suggestion`
 - `recommended agent`
+
+`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
 
 If any field is missing, stop and return to `grouped-tasks` to repair the artifact before implementing.
 
 If the artifact explicitly declares serialized delegate reuse, every participating group must also include `serialization lane` and `agent reuse`. Legacy artifacts may omit those fields; inference is allowed only as a backward-compatibility fallback.
 
-If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, merge-group requirements, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
+If any groups are marked parallel-capable, the active artifact must also include a current `parallel execution trace` section that covers fan-out, each group's `project scope`, the fan-in gate type for downstream work, and where serialization resumes. If that trace is missing or stale, stop and return to `grouped-tasks`.
 
 ## Precedence
 
@@ -49,7 +52,7 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - if serialized reuse metadata is present, form ready lanes from `serialization lane` plus `agent reuse`
 - if serialized reuse metadata is absent, infer ready serialized lanes only for legacy artifacts whose adjacent serialized groups share the same literal `recommended agent`
 - run a scoped `explore` subagent only when a lane's current group is `unknown`
-- if parallel lanes are ready, confirm the current artifact also includes the `parallel execution trace` and any required merge group before delegating them
+- if parallel lanes are ready, confirm the current artifact also includes the `parallel execution trace` and the correct same-scope merge or cross-scope completion gate before delegating them
 - delegate each ready lane to the literal `recommended agent` named in that lane's current group
 - pass the full group text for the current lane position, any explore findings, dependency notes, and verification expectations into that implementation delegation
 - after a group completes, reassess dependency state before starting newly unblocked groups
@@ -72,7 +75,9 @@ When a new session receives an existing grouped plan or grouped OpenSpec tasks f
 - when a group is not `unknown`, delegate implementation directly with the grouped plan and the execution-critical context already in hand
 - if multiple ready lanes are explicitly marked independent, delegate those lanes in parallel only after confirming the artifact's `parallel execution trace`
 - when parallel lanes are delegated, prefer detached worktrees by default unless the user explicitly requested branch-per-group execution
-- if downstream serialized work depends on multiple earlier parallel groups, require the declared merge group to complete before starting that downstream serialized work
+- if downstream serialized work depends on multiple earlier parallel groups in the same `project scope`, require the declared merge group to complete before starting that downstream serialized work
+- if that fan-in spans different `project scope` values and the artifact marks it completion-only, wait for the upstream groups to finish and then continue without merge orchestration
+- if a parallel fan-in exists but the artifact does not make the gate explicit, stop and repair the artifact with `grouped-tasks`
 - if execution begins with `subagent-driven-development` or another generic executor before honoring grouped routing, execution must stop and restart under this skill
 - do not invoke `requesting-code-review`, review agents, or review commands during grouped-plan execution unless the user or the plan explicitly names review
 - reserve the pre-scoped handoff for `unknown` groups that still need repository grounding before implementation
@@ -103,12 +108,14 @@ For OpenSpec repositories:
 - Forcing a scoped `explore` handoff for an implementation-ready non-`unknown` group
 - Auto-invoking `requesting-code-review` when no review was requested
 - Ignoring dependency gates between groups
+- Missing or ignoring `project scope` on grouped execution
 - Treating `recommended agent` as optional
 - Letting the implementation agent restart broad discovery after it already received a scoped explore summary
 - Reusing a lane because complexity matches even though the `recommended agent` differs
 - Ignoring `serialization lane` or `agent reuse` when the artifact already declares them
 - Running groups in parallel when the grouped artifact says serialization is required
-- Starting downstream serialized work before the declared merge group completes
+- Starting same-`project scope` downstream serialized work before the declared merge group completes
+- Forcing merge handling when cross-`project scope` fan-in is explicitly completion-only
 
 ## Rationalization Table
 
@@ -125,6 +132,7 @@ For OpenSpec repositories:
 - Any automatic `requesting-code-review` invocation without explicit review request
 - Missing `branch suggestion`
 - Missing `parallel execution trace` for parallel work
+- Missing `project scope`
 - Missing `recommended agent`
 - Group execution that ignores dependencies
 - Group execution that ignores declared parallelization

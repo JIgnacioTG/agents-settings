@@ -35,8 +35,11 @@ Every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `project scope`
 - `branch suggestion`
 - `recommended agent`
+
+`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
 
 When 2 or more adjacent groups stay serialized and are intended to reuse one implementation delegate, each participating group must also include:
 
@@ -67,7 +70,7 @@ Allowed complexity values:
 
 `unknown` is valid only when the missing research is stated explicitly.
 
-If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, any required merge group, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
+If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, each group's `project scope`, whether each downstream fan-in requires a merge group or only upstream completion, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
 
 Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
 
@@ -79,11 +82,12 @@ Before implementation starts, include an explicit cross-group analysis that stat
 - which groups must stay serialized
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
+- which `project scope` belongs to each group
 - which branch suggestion belongs to each group
 - which serialized groups share the same implementation lane
 - which parallel groups should use detached worktrees by default
 
-If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
+If later serialized work depends on two or more earlier parallel groups, use `project scope` to decide the fan-in gate. Insert a dedicated merge group only when the upstream groups share the same `project scope` and downstream work needs their combined branch state. When the upstream groups have different `project scope` values and no shared merge is required, do not invent a merge group; make the downstream group wait for upstream completion only.
 
 If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
@@ -158,6 +162,7 @@ If grouped work already exists and the request is to implement or continue imple
 - Rewriting OpenSpec sectioned checklist tasks into a different task-body format
 - Group without complexity
 - Group without dependency notes
+- Missing `project scope`
 - Group without `branch suggestion`
 - Missing cross-group parallelization analysis
 - Missing `parallel execution trace` when parallel work exists
@@ -169,7 +174,8 @@ If grouped work already exists and the request is to implement or continue imple
 - Using `unknown` without naming the missing research
 - Reusing a lane because complexity matches even though the `recommended agent` differs
 - Carrying the same lane across a dependency break, merge group, or parallel boundary
-- Omitting the merge group when downstream serialized work depends on earlier parallel groups
+- Omitting the merge group when same-`project scope` downstream fan-in needs one
+- Inventing a merge group when cross-`project scope` completion-only fan-in is sufficient
 - Letting another planning skill return a flat numbered task sequence
 - Trying to execute grouped work from this skill instead of handing off
 
@@ -189,6 +195,7 @@ If grouped work already exists and the request is to implement or continue imple
 - Flat list for multi-step work
 - OpenSpec `tasks.md` sections rewritten instead of preserved
 - Missing `parallelization`
+- Missing `project scope`
 - Missing `branch suggestion`
 - Missing `parallel execution trace` for parallel work
 - Missing `recommended agent`

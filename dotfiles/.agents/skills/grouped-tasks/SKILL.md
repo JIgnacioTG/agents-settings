@@ -32,8 +32,11 @@ Every group must include:
 - `complexity`
 - `dependencies`
 - `parallelization`
+- `project scope`
 - `branch suggestion`
 - `execution profile`
+
+`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
 
 The `execution profile` must declare:
 
@@ -64,7 +67,7 @@ Allowed Codex complexity values:
 
 `unknown` is valid only when the missing research is named explicitly.
 
-If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, any required merge group, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
+If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, each group's `project scope`, whether each downstream fan-in requires a merge group or only upstream completion, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
 
 ## Routing Contract
 
@@ -127,11 +130,12 @@ Before implementation starts, include explicit cross-group analysis that states:
 - which groups must stay serialized
 - what dependency or shared-state constraint causes the ordering
 - the resulting execution order
+- which `project scope` belongs to each group
 - which branch suggestion belongs to each group
 - which serialized groups share the same implementation lane
 - which parallel groups should use detached worktrees by default
 
-If later serialized work depends on two or more earlier parallel groups, insert a dedicated merge group before that downstream serialized group. The merge group owns conflict resolution, integration validation, and the unified handoff back into serialized execution.
+If later serialized work depends on two or more earlier parallel groups, use `project scope` to decide the fan-in gate. Insert a dedicated merge group only when the upstream groups share the same `project scope` and downstream work needs their combined branch state. When the upstream groups have different `project scope` values and no shared merge is required, do not invent a merge group; make the downstream group wait for upstream completion only.
 
 If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
@@ -149,6 +153,7 @@ Use a compact grouped format like this:
 - complexity: high
 - dependencies: none
 - parallelization: can run in parallel with Group 2
+- project scope: `app-repo`
 - branch suggestion: `feat/review-entrypoint`
 - execution profile:
   - model: gpt-5.3-codex
@@ -166,6 +171,7 @@ When serialized same-profile reuse applies, extend the group format like this:
 - complexity: high
 - dependencies: none
 - parallelization: serialized before Group 2
+- project scope: `app-repo`
 - branch suggestion: `feat/review-entrypoint`
 - serialization lane: `lane-1`
 - agent reuse: start
@@ -181,6 +187,7 @@ When serialized same-profile reuse applies, extend the group format like this:
 - complexity: high
 - dependencies: Group 1
 - parallelization: serialized after Group 1
+- project scope: `app-repo`
 - branch suggestion: `feat/review-validation`
 - serialization lane: `lane-1`
 - agent reuse: continue
@@ -197,10 +204,13 @@ When parallel work exists, add a compact trace like this:
 ### Parallel Execution Trace
 
 - fan-out: Group 1 || Group 2
+- scopes: Group 1 -> `frontend`, Group 2 -> `backend`
 - isolation: create detached worktrees for Group 1 and Group 2 by default
-- merge: Group 3 merges Group 1 and Group 2 before downstream serialized work
-- resume serialization: Group 4 starts after Group 3
+- fan-in gate: completion only after Group 1 and Group 2
+- resume serialization: Group 3 starts after both groups complete
 ```
+
+When same-scope fan-in needs integration before downstream work, replace the `fan-in gate` line with a merge-required form such as `fan-in gate: Group 3 merges Group 1 and Group 2 inside app-repo` and resume serialization after that merge group completes.
 
 ## Boundaries
 
@@ -215,6 +225,7 @@ When parallel work exists, add a compact trace like this:
 - Flat task lists
 - Emitting `simple`
 - Missing `execution profile`
+- Missing `project scope`
 - Missing `branch suggestion`
 - Missing `parallel execution trace` when parallel work exists
 - Missing `fast_mode`
@@ -227,6 +238,7 @@ When parallel work exists, add a compact trace like this:
 - Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
 - Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
 - Carrying the same lane across a dependency break, merge group, or parallel boundary
-- Omitting the merge group when downstream serialized work depends on earlier parallel groups
+- Omitting the merge group when same-`project scope` downstream fan-in needs one
+- Inventing a merge group when cross-`project scope` completion-only fan-in is sufficient
 - Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
 - Treating `gpt-5.4` as the default for planned implementation
