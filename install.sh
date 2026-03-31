@@ -28,8 +28,13 @@ backup_needed=false
 OBSOLETE_PATHS=(
     ".config/opencode/skills/grouped-tasks/SKILL.md"
     ".config/opencode/skills/executing-grouped-tasks/SKILL.md"
+    ".config/opencode/agents/implementation-agent-fast.md"
+    ".config/opencode/agents/implementation-agent-medium.md"
+    ".config/opencode/agents/implementation-agent-spark.md"
+    ".config/opencode/agents/implementation-agent-thinker.md"
     ".cursor/skills/grouped-tasks/SKILL.md"
     ".cursor/skills/executing-grouped-tasks/SKILL.md"
+    ".cursor/agents/implementation-agent-fast.md"
 )
 
 is_skill_path() {

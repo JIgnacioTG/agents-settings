@@ -66,6 +66,14 @@ If any groups are marked parallel-capable, the active artifact must also include
 
 Legacy artifacts that still depend on `complexity`, `fast_mode`, `spark_offer`, or deprecated OpenCode implementation-agent variants must be repaired with `grouped-tasks` before execution continues.
 
+## Codex Reference
+
+When a Codex `test/coverage` lane is about to execute, load:
+
+- `./references/test-setup-explorer.md`
+
+Use that profile's `model` and `reasoning_effort` directly for the prepass.
+
 ## Routing Contract
 
 Read the active artifact literally.
