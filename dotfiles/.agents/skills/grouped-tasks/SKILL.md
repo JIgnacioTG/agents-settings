@@ -1,14 +1,14 @@
 ---
 name: grouped-tasks
-description: Use when generating or rewriting grouped OpenSpec task artifacts, superpower plans, or Codex multi-step implementation plans so the output carries explicit complexity, dependencies, parallelization, execution-profile routing, and serialized-lane reuse metadata before execution starts.
+description: Use when generating or rewriting grouped OpenSpec task artifacts, superpower plans, or Codex/OpenCode/Cursor multi-step implementation plans so the output carries explicit dependencies, routing, and separated test lanes before execution starts.
 ---
 
 # Grouped Tasks
 
 Turn multi-step implementation work into explicit task groups instead of flat lists.
 
-This skill shapes grouped implementation artifacts. It does not execute them.
-Grouped artifacts should be implementation-ready by default. A separate explore prepass is an execution-time tactic only when a group remains `unknown`. Spark is an implementation option only and never the explore route.
+This skill shapes grouped artifacts. It does not execute them.
+Implementation work and test/coverage work must always be planned as separate groups.
 
 ## Automatic Trigger Cases
 
@@ -16,7 +16,7 @@ Use this skill automatically when the active work is any of the following:
 
 - OpenSpec task artifact creation or update where grouped tasks output is being written or repaired
 - superpower plan creation or rewrite for implementation work
-- Codex multi-step implementation planning, including user-requested plans or todo lists that will drive execution
+- Codex, OpenCode, or Cursor multi-step implementation planning, including user-requested plans or todo lists that will drive execution
 - any flat implementation plan that must be regrouped before coding begins
 
 If the grouped artifact already exists and implementation is about to start, stop using this skill and hand off to `executing-grouped-tasks`.
@@ -29,21 +29,44 @@ Every group must include:
 
 - `goal`
 - `tasks`
-- `complexity`
+- `work type`
 - `dependencies`
 - `parallelization`
 - `project scope`
 - `branch suggestion`
+
+`work type` must be one of:
+
+- `implementation`
+- `test/coverage`
+
+Any `test/coverage` group must also include:
+
+- `test scope`
+
+`test scope` must be one of:
+
+- `unit`
+- `integration`
+- `e2e`
+
+Codex grouped artifacts must include:
+
 - `execution profile`
 
-`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
-
-The `execution profile` must declare:
+The Codex `execution profile` must declare:
 
 - `model`
 - `reasoning_effort`
-- `spark_offer`
-- `fast_mode`
+
+OpenCode and Cursor grouped artifacts must include:
+
+- `recommended agent`
+
+Codex grouped artifacts must not emit `recommended agent`.
+OpenCode and Cursor grouped artifacts must not emit `execution profile`.
+
+`project scope` must name the repo, submodule, or other independently versioned workspace slice that group changes. Use stable identifiers such as a repo name or submodule path.
 
 When 2 or more adjacent groups stay serialized and are intended to reuse one implementation delegate, each participating group must also include:
 
@@ -56,60 +79,43 @@ When 2 or more adjacent groups stay serialized and are intended to reuse one imp
 - `continue`
 - `none`
 
-Allowed Codex complexity values:
-
-- `low`
-- `medium`
-- `high`
-- `unknown`
-
-`simple` is not valid on the Codex side.
-
-`unknown` is valid only when the missing research is named explicitly.
-
 If any groups can run in parallel, the artifact must also include a `parallel execution trace` section that shows the fan-out, each group's `project scope`, whether each downstream fan-in requires a merge group or only upstream completion, the point where serialization resumes, and the default detached worktree recommendation for each parallel group unless the user explicitly asked for branch-per-group execution.
+
+When the artifact is OpenSpec `tasks.md`, keep the repository's existing sectioned task format. Add the grouped metadata around the current section body instead of rewriting the task body into a new structure.
 
 ## Routing Contract
 
-Use this mapping unless the user explicitly overrides it:
+Use fixed main execution routing for new grouped artifacts.
 
-- `low` -> `gpt-5.4-mini`, `reasoning_effort: medium`, `spark_offer: false`
-- `medium` -> `gpt-5.3-codex`, `reasoning_effort: medium`, `spark_offer: true`
-- `high` -> `gpt-5.3-codex`, `reasoning_effort: high`, `spark_offer: true`
-- `unknown` -> `gpt-5.4`, `reasoning_effort: xhigh`, `spark_offer: false`
+For Codex:
 
-Treat that mapping as the non-fast fallback profile. Set `fast_mode: inherit` by default for every group unless the user explicitly overrides fast-mode behavior for that group.
+- every `implementation` group uses `model: gpt-5.3-codex`
+- every `implementation` group uses `reasoning_effort: medium`
+- every `test/coverage` group uses the same main `execution profile`
 
-`fast_mode` must be one of:
+For OpenCode and Cursor:
 
-- `inherit` to use fast mode when the parent session is already running in fast mode or the user explicitly asks for fast mode
-- `off` to keep this group on the declared non-fast fallback profile even when fast mode is active elsewhere
-- `on` to force fast mode for this group even when the parent session is not already fast
+- every `implementation` group uses `recommended agent: @implementation-agent`
+- every `test/coverage` group uses the same main `recommended agent`
 
-Implementation-test groups are an explicit planning exception. If a group is primarily about writing, debugging, stabilizing, or unblocking implementation tests, default it to `complexity: unknown` unless a similar nearby integration test or fixture path already makes the required generated data, setup flow, and assertions concrete enough to execute without additional research.
+Before any `test/coverage` lane executes, `executing-grouped-tasks` must run the `test-setup-explorer` prepass.
+That prepass is execution-time context gathering, not a group-routing field.
 
-When an implementation-test group stays `unknown`, name the missing research explicitly, such as fixture discovery, seed data shape, harness setup, or assertion strategy.
+Use this test-setup-explorer mapping:
 
-Use `gpt-5.4` only when the work is still unclear, research-heavy, not implementation-ready, or the implementation-test group still needs research before its setup and data generation are concrete.
+- Codex: `model: gpt-5.4-mini`, `reasoning_effort: high`
+- OpenCode: `@test-setup-explorer`
+- Cursor: `@test-setup-explorer`
 
-Spark is optional. Offer it only for `medium` or `high` groups where faster execution is worth the tradeoff, including when fast mode is already active or the user explicitly requested fast mode, because Spark can still be faster than regular fast mode.
-
-Keep `spark_offer: true` as an offer only. It does not by itself require a separate explore prepass.
-
-When the parent session is already in fast mode or the user explicitly requests fast mode, plan every group with `fast_mode: inherit` by default, including `low` and `unknown` groups. Only set `fast_mode: off` when the user explicitly opts a group out.
+New grouped artifacts must not emit deprecated OpenCode implementation agents such as `@implementation-agent-fast`, `@implementation-agent-medium`, `@implementation-agent-spark`, or `@implementation-agent-thinker`.
+Do not emit Spark offers, fast-mode metadata, or complexity-based routing.
 
 ## Serialized Reuse
 
-When 2 or more adjacent groups must stay serialized, reuse one implementation lane only when their declared `execution profile` matches exactly.
+When 2 or more adjacent groups must stay serialized, reuse one implementation lane only when they keep the same work type and the same literal routing field.
 
-For Codex, compare all of:
-
-- `model`
-- `reasoning_effort`
-- `spark_offer`
-- `fast_mode`
-
-Complexity alone is not enough.
+For Codex, compare the literal `execution profile`.
+For OpenCode and Cursor, compare the literal `recommended agent`.
 
 When reuse applies:
 
@@ -118,7 +124,7 @@ When reuse applies:
 - mark each later group in that lane with `agent reuse: continue`
 - use `agent reuse: none` when a serialized group intentionally starts a fresh lane
 
-Stop the lane at any execution-profile mismatch, dependency break, parallel fan-out or fan-in boundary, or merge group.
+Stop the lane at any work-type change, routing mismatch, dependency break, parallel fan-out or fan-in boundary, or merge group.
 
 Serialized-lane reuse is additive. Keep each group as its own execution unit and preserve the declared dependencies and ordering.
 
@@ -135,67 +141,51 @@ Before implementation starts, include explicit cross-group analysis that states:
 - which serialized groups share the same implementation lane
 - which parallel groups should use detached worktrees by default
 
-If later serialized work depends on two or more earlier parallel groups, use `project scope` to decide the fan-in gate. Insert a dedicated merge group only when the upstream groups share the same `project scope` and downstream work needs their combined branch state. When the upstream groups have different `project scope` values and no shared merge is required, do not invent a merge group; make the downstream group wait for upstream completion only.
+If later serialized work depends on two or more earlier parallel groups, use `project scope` to decide the fan-in gate. Insert a dedicated merge group only when the upstream groups share the same `project scope` and downstream work needs their combined branch state. When the upstream groups have different `project scope` values and no shared merge is required, do not invent a merge group. Make the downstream group wait for upstream completion only.
 
 If nothing can run in parallel, say so explicitly and skip the parallel execution trace.
 
 ## Output Shape
 
-Use a compact grouped format like this:
+Use a compact grouped format like this for Codex:
 
 ```markdown
 ### Group 1
 
 - goal: Implement the review entrypoint
 - tasks:
-  - Add the Codex review skill
-  - Wire the review-only assets it needs
-- complexity: high
+  - Add the review entrypoint
+  - Wire the follow-up validation flow
+- work type: implementation
 - dependencies: none
 - parallelization: can run in parallel with Group 2
 - project scope: `app-repo`
 - branch suggestion: `feat/review-entrypoint`
 - execution profile:
   - model: gpt-5.3-codex
-  - reasoning_effort: high
-  - spark_offer: true
-  - fast_mode: inherit
+  - reasoning_effort: medium
 ```
 
-When serialized same-profile reuse applies, extend the group format like this:
+For OpenCode and Cursor, use the same format but replace `execution profile` with `recommended agent: @implementation-agent`.
+
+For any test/coverage group, extend the format like this:
 
 ```markdown
-### Group 1
-
-- goal: Implement the review entrypoint
-- complexity: high
-- dependencies: none
-- parallelization: serialized before Group 2
-- project scope: `app-repo`
-- branch suggestion: `feat/review-entrypoint`
-- serialization lane: `lane-1`
-- agent reuse: start
-- execution profile:
-  - model: gpt-5.3-codex
-  - reasoning_effort: high
-  - spark_offer: true
-  - fast_mode: inherit
-
 ### Group 2
 
-- goal: Wire the follow-up validation flow
-- complexity: high
+- goal: Add integration coverage for the review flow
+- tasks:
+  - Add the integration test
+  - Cover the main success path and failure path
+- work type: test/coverage
+- test scope: integration
 - dependencies: Group 1
 - parallelization: serialized after Group 1
 - project scope: `app-repo`
-- branch suggestion: `feat/review-validation`
-- serialization lane: `lane-1`
-- agent reuse: continue
+- branch suggestion: `feat/review-tests`
 - execution profile:
   - model: gpt-5.3-codex
-  - reasoning_effort: high
-  - spark_offer: true
-  - fast_mode: inherit
+  - reasoning_effort: medium
 ```
 
 When parallel work exists, add a compact trace like this:
@@ -216,29 +206,27 @@ When same-scope fan-in needs integration before downstream work, replace the `fa
 
 - Use this skill for grouped implementation planning, not brainstorming.
 - Use this skill when the work is implementation-oriented and multi-step.
-- Do not wait for an explicit skill mention when the request is OpenSpec artifact creation, superpower planning, or Codex implementation planning that should produce grouped work.
+- Do not wait for an explicit skill mention when the request is OpenSpec artifact creation, superpower planning, or implementation planning that should produce grouped work.
 - If the grouped artifact already exists and the request is to execute it, hand off to `executing-grouped-tasks`.
+- Keep implementation and test/coverage work in separate groups.
 - Do not emit review steps unless the user explicitly requested review or the provided plan already includes one.
 
 ## Common Mistakes
 
 - Flat task lists
-- Emitting `simple`
-- Missing `execution profile`
+- Mixing implementation and test/coverage work in the same group
+- Missing `test scope` on a `test/coverage` group
+- Missing the tool-specific routing field
+- Emitting `recommended agent` in Codex grouped artifacts
+- Emitting `execution profile` in OpenCode or Cursor grouped artifacts
 - Missing `project scope`
 - Missing `branch suggestion`
 - Missing `parallel execution trace` when parallel work exists
-- Missing `fast_mode`
-- Using `recommended agent`
 - Missing `serialization lane` or `agent reuse` on a serialized reuse chain
-- Using `unknown` without naming the missing research
-- Offering Spark for `low` or `unknown`
-- Reusing a lane because complexity matches even though the `execution profile` differs
-- Treating `spark_offer: true` as a reason to force a separate explore prepass
-- Forgetting that parent fast mode or an explicit user fast-mode request should propagate to every group by default
-- Treating fast mode as a reason to stop offering Spark on eligible `medium` or `high` groups
+- Emitting deprecated OpenCode implementation agents in new grouped artifacts
+- Using `test-setup-explorer` as the main group-routing field instead of an execution-time prepass
+- Reusing a lane across a work-type boundary
 - Carrying the same lane across a dependency break, merge group, or parallel boundary
 - Omitting the merge group when same-`project scope` downstream fan-in needs one
 - Inventing a merge group when cross-`project scope` completion-only fan-in is sufficient
-- Assigning implementation-test groups a concrete complexity before the setup, generated data, and assertion path are grounded in a similar nearby integration test
-- Treating `gpt-5.4` as the default for planned implementation
+- Trying to execute grouped work from this skill instead of handing off

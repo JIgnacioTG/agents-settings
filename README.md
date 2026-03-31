@@ -14,6 +14,8 @@ Custom agent settings, used across my machines (linux-mac)
 | OpenCode | `~/.config/opencode/` (symlinked files from `dotfiles/.config/opencode/`) |
 | Cursor | `~/.cursor/agents/`, `~/.cursor/commands/`, `~/.cursor/skills/`, `~/.cursor/rules/`, `~/.cursor/AGENTS.md` (symlinked from `dotfiles/.cursor/`) |
 
+Shared grouped execution skills live only under `~/.agents/skills/`. OpenCode and Cursor no longer keep duplicated `grouped-tasks` or `executing-grouped-tasks` copies.
+
 ### Cursor: user rules vs `AGENTS.md`
 
 - **`AGENTS.md`** at the project root (and nested dirs) is picked up by Cursor automatically. After install, `~/.cursor/AGENTS.md` holds the canonical copy of working agreements from this repo.

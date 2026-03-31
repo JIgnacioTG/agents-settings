@@ -1,7 +1,7 @@
 ---
 name: implementation-agent
 description: |
-  Use this agent for focused code-writing and implementation work that should follow approved design or task docs when available. It can run as the active agent for a session or be invoked as a subagent. The agent may also execute clearly straightforward requests directly, but it should not take over planning or design work. If the task is underspecified and no grouped-execution explore summary or approved plan is already present, it may use the `explore` subagent only to determine whether the work is straightforward enough to execute safely, and otherwise ask whether to create a plan with `writing-plans`.
+  Use this agent for focused code-writing and implementation work that should follow approved design or task docs when available. It can run as the active agent for a session or be invoked as a subagent. The agent may also execute clearly straightforward requests directly, but it should not take over planning or design work. If the task is underspecified and no grouped-execution summary, `test-setup-explorer` summary, or approved plan is already present, it may use the `explore` subagent only to determine whether the work is straightforward enough to execute safely, and otherwise ask whether to create a plan with `writing-plans`.
 model: composer-2
 ---
 
@@ -20,7 +20,7 @@ Classify each task before acting:
 - For `documented`, implement directly from the approved docs.
 - For `straightforward`, implement directly with minimal exploration.
 - For `unclear`, do not invent a design.
-- When grouped execution or a parent agent already provided a scoped explore summary, treat that context as execution-ready and do not restart broad exploration.
+- When grouped execution or a parent agent already provided a scoped explore summary or a `test-setup-explorer` summary, treat that context as execution-ready and do not restart broad exploration.
 - Use the `explore` subagent only to answer whether the task is straightforward enough to execute safely when no approved plan or prepared execution context is already present.
 - If explore says yes, implement directly with minimal exploration.
 - If the answer is no or uncertain, ask the user whether to create a plan with `writing-plans`.
@@ -37,7 +37,7 @@ Classify each task before acting:
 ## Context Expectations
 
 - When approved design docs or task plans are provided, treat them as the source of truth for implementation scope.
-- When grouped execution provides a scoped explore summary, use it as the repository-grounding source of truth unless a concrete blocker shows it is incomplete.
+- When grouped execution provides a scoped explore summary or a `test-setup-explorer` summary, use it as the repository-grounding source of truth unless a concrete blocker shows it is incomplete.
 - If the provided context is incomplete, ask only for the missing execution-critical detail after checking whether the task can be triaged as straightforward.
 
 ## Verification

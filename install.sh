@@ -25,6 +25,13 @@ BACKUP_DIR="${BACKUP_BASE}/${TIMESTAMP}"
 
 backup_needed=false
 
+OBSOLETE_PATHS=(
+    ".config/opencode/skills/grouped-tasks/SKILL.md"
+    ".config/opencode/skills/executing-grouped-tasks/SKILL.md"
+    ".cursor/skills/grouped-tasks/SKILL.md"
+    ".cursor/skills/executing-grouped-tasks/SKILL.md"
+)
+
 is_skill_path() {
     local relative_path="$1"
     [[ "$relative_path" == .agents/skills/* ]]
@@ -80,6 +87,32 @@ remove_target() {
         print_action "Removing existing file: ${target_path}"
         rm "$target_path"
     fi
+}
+
+cleanup_obsolete_paths() {
+    local relative_path
+
+    for relative_path in "${OBSOLETE_PATHS[@]}"; do
+        local target_path="${HOME_CONFIG}/${relative_path}"
+
+        if [[ ! -e "$target_path" && ! -L "$target_path" ]]; then
+            continue
+        fi
+
+        backup_path "$target_path" "$relative_path"
+        remove_target "$target_path"
+        print_success "Removed obsolete path: ${target_path}"
+
+        local parent_dir
+        parent_dir="$(dirname "$target_path")"
+        while [[ "$parent_dir" != "$HOME_CONFIG" ]]; do
+            if ! rmdir "$parent_dir" 2>/dev/null; then
+                break
+            fi
+            print_info "Removed empty directory: ${parent_dir}"
+            parent_dir="$(dirname "$parent_dir")"
+        done
+    done
 }
 
 process_dotfile() {
@@ -161,6 +194,8 @@ main() {
     print_info "Target config: ${HOME_CONFIG}"
     print_info "Backup location: ${BACKUP_DIR}"
     echo ""
+
+    cleanup_obsolete_paths
 
     local errors=0
     local processed=0

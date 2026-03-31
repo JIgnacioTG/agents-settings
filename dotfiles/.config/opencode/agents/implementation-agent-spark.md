@@ -1,9 +1,9 @@
 ---
 name: implementation-agent-spark
 description: |
-  Use this legacy compatibility agent when an existing plan or workflow already routes focused implementation work to `implementation-agent-spark`. It should follow the same implementation-specialist behavior as `implementation-agent-medium` without taking over planning or design work, and it should assume grouped execution has already prepared a scoped explore summary when invoked from a grouped artifact.
+  Deprecated compatibility alias for `implementation-agent`. Keep this only so legacy plans can fail soft while grouped routing is refreshed. New grouped artifacts should route to `implementation-agent` instead.
 mode: all
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-5.3-codex
 reasoningEffort: medium
 ---
 
@@ -22,7 +22,7 @@ Classify each task before acting:
 - For `documented`, implement directly from the approved docs.
 - For `straightforward`, implement directly with minimal exploration.
 - For `unclear`, do not invent a design.
-- When grouped execution or a parent agent already provided a scoped explore summary, treat that context as execution-ready and do not restart broad exploration.
+- When grouped execution or a parent agent already provided a scoped explore summary or a `test-setup-explorer` summary, treat that context as execution-ready and do not restart broad exploration.
 - Use the `explore` subagent only to answer whether the task is straightforward enough to execute safely when no approved plan or prepared execution context is already present.
 - If explore says yes, implement directly with minimal exploration.
 - If the answer is no or uncertain, ask the user whether to create a plan with `writing-plans`.
@@ -39,7 +39,7 @@ Classify each task before acting:
 ## Context Expectations
 
 - When approved design docs or task plans are provided, treat them as the source of truth for implementation scope.
-- When grouped execution provides a scoped explore summary, use it as the repository-grounding source of truth unless a concrete blocker shows it is incomplete.
+- When grouped execution provides a scoped explore summary or a `test-setup-explorer` summary, use it as the repository-grounding source of truth unless a concrete blocker shows it is incomplete.
 - If the provided context is incomplete, ask only for the missing execution-critical detail after checking whether the task can be triaged as straightforward.
 
 ## Verification
