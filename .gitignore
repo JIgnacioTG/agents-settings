@@ -71,6 +71,9 @@ docs/_build/
 *.docx
 *.pptx
 
+# Oh my openagent
+.sisyphus/
+
 # Superpowers
 docs/plans/
 docs/superpowers/
