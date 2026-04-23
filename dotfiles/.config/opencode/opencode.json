@@ -23,7 +23,7 @@
         "-y",
         "@smartbear/mcp@latest"
       ],
-      "enabled": false,
+      "enabled": false
     }
   },
   "permission": {
@@ -40,9 +40,16 @@
   "provider": {
     "openai": {
       "models": {
-        "gpt-5.4": {
+        "gpt-5.5": {
           "limit": {
-            "context": 1050000,
+            "context": 400000,
+            "input": 272000,
+            "output": 128000
+          }
+        },
+        "gpt-5.5-fast": {
+          "limit": {
+            "context": 400000,
             "input": 272000,
             "output": 128000
           }
