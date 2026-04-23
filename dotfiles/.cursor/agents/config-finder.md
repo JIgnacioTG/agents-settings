@@ -1,7 +1,7 @@
 ---
 name: config-finder
 description: |
-  Reserved for `/code-review` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Finds the `AGENTS.md` files relevant to the requested diff or changeset.
 model: composer-2-fast

@@ -1,7 +1,7 @@
 ---
 name: pr-summarizer
 description: |
-  Reserved for `/code-review` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Summarizes a pull request or diff for downstream review agents.
 mode: subagent

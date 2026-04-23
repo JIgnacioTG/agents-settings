@@ -1,7 +1,7 @@
 ---
 name: issue-validator
 description: |
-  Reserved for `/code-review` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Validates issues flagged by review agents and filters out false positives.
 model: composer-2

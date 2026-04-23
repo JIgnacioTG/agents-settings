@@ -1,0 +1,33 @@
+{
+  "skill_name": "comprehensive-code-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I haven't opened a PR yet, but my current branch has a messy local diff across `services/billing/` and `lib/queue/`. Please do a staged diff review of the changes on this branch versus `origin/main`. I only want findings from the changed code, split by severity, and call out if the error-handling changes or missing tests look risky before I push this up.",
+      "expected_output": "A local diff review that uses branch-vs-main context, stays scoped to changed files, and returns high-signal staged findings with attention to testing and failure-path risk.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "prompt": "Can you review GitHub PR https://github.com/acme/platform/pull/842 like a real reviewer, not just summarize the diff? Please pull the PR metadata, include unresolved review-thread context if it's available, and give me a final report grouped into critical / important / suggestion / strengths. If the PR is draft or otherwise not worth a full pass yet, say that early and stop.",
+      "expected_output": "A PR-based review that prefers GitHub context, incorporates unresolved discussion when available, respects triage, and reports validated findings in the final grouped format.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "prompt": "Please review the changed code in my branch before I merge. The diff touches `api/auth/login.ts`, `api/auth/refresh.ts`, and `shared/contracts/session.ts`, plus a couple of tests. I'm worried about whether the new request parsing, session token refresh flow, and schema changes are actually safe. Use whatever specialist passes make sense from the diff, but don't waste time on unrelated review angles.",
+      "expected_output": "A changed-code review that activates only the relevant specialists for auth, contracts, and tests, then returns validated findings without widening into unrelated passes.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "prompt": "I'd like a review of the UI-heavy changes on this branch. The diff refactors `dashboard/Overview.tsx`, `dashboard/widgets/RevenueChart.tsx`, and the loading/error states around them, with some CSS and accessibility tweaks. Please do the normal review pass, but also bring in any specialists that are actually justified by those frontend rendering and interaction changes so I get signal on UX, performance, and regressions without running every pass blindly.",
+      "expected_output": "A diff review that keeps the base review pass, conditionally activates frontend-focused specialists when warranted by the changed components, and avoids blanket pass activation.",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}

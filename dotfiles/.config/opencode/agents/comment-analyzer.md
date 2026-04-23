@@ -1,7 +1,7 @@
 ---
 name: comment-analyzer
 description: |
-  Reserved for `/review-pr` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Reviews code comments for accuracy, completeness, and long-term maintainability.
 mode: subagent

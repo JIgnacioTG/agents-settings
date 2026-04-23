@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: |
-  Reserved for `/code-review` and `/review-pr` workflows. Invoke only from those commands.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Reviews the requested diff for high-signal bugs within the command-defined review scope.
 model: composer-2

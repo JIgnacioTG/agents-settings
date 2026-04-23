@@ -1,7 +1,7 @@
 ---
 name: pr-triage
 description: |
-  Reserved for `/code-review` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Performs quick PR triage to decide whether a deeper review should proceed.
 model: composer-2-fast

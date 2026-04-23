@@ -35,6 +35,14 @@ OBSOLETE_PATHS=(
     ".cursor/skills/grouped-tasks/SKILL.md"
     ".cursor/skills/executing-grouped-tasks/SKILL.md"
     ".cursor/agents/implementation-agent-fast.md"
+    ".agents/skills/code-review"
+    ".agents/skills/review-pr"
+    ".config/opencode/commands/code-review.md"
+    ".config/opencode/commands/review-pr.md"
+    ".cursor/skills/code-review"
+    ".cursor/skills/review-pr"
+    ".cursor/commands/code-review.md"
+    ".cursor/commands/review-pr.md"
 )
 
 is_skill_path() {

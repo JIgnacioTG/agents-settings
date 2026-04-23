@@ -7,7 +7,7 @@
 - A request to build, implement, modify, fix, refactor, configure, or review something is not by itself a request for `brainstorming`.
 - Do not infer a `brainstorming` request from words like `create`, `build`, `improve`, or `design`; the user must explicitly ask to brainstorm or explore options.
 - Do not invoke `brainstorming` for routine implementation, bug fixes, refactors, configuration changes, repo exploration, code review, or standard clarifying questions.
-- Code review is opt-in only. Do not invoke `requesting-code-review`, review agents, or review workflows unless the user explicitly asks for review or the active plan/artifact explicitly requires review.
+- Code review is opt-in only. Do not invoke `requesting-code-review`, review agents, or review workflows unless the user explicitly asks for review or the active plan/artifact explicitly requires review. Use the `comprehensive-code-review` skill when explicit review is requested.
 - If a task is actionable, proceed directly with minimal repository inspection and only ask a focused clarifying question when truly blocked.
 - If there is any ambiguity about whether `brainstorming` is needed, default to not using it unless the user explicitly requests it.
 - When the choice is between acting directly and invoking `brainstorming`, always prefer direct execution unless the user explicitly asked for brainstorming.

@@ -1,7 +1,7 @@
 ---
 name: compliance-auditor
 description: |
-  Reserved for `/code-review` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Audits changed files against the scoped `AGENTS.md` rules that apply to them.
 mode: subagent

@@ -7,14 +7,14 @@
 - A request to build, implement, modify, fix, refactor, configure, or review something is not by itself a request for `brainstorming`.
 - Do not infer a `brainstorming` request from words like `create`, `build`, `improve`, or `design`; the user must explicitly ask to brainstorm or explore options.
 - Do not invoke `brainstorming` for routine implementation, bug fixes, refactors, configuration changes, repo exploration, code review, or standard clarifying questions.
-- Code review is opt-in only. Do not invoke `review-pr`, `code-review`, review-only agents, or review workflows unless the user explicitly asks for review or the active plan/artifact explicitly requires review.
+- Code review is opt-in only. Do not invoke review agents or review workflows unless the user explicitly asks for review or the active plan/artifact explicitly requires review. Use the `comprehensive-code-review` skill when explicit review is requested.
 - If a task is actionable, proceed directly with minimal repository inspection and only ask a focused clarifying question when truly blocked.
 - If there is any ambiguity about whether `brainstorming` is needed, default to not using it unless the user explicitly requests it.
 - When the choice is between acting directly and invoking `brainstorming`, always prefer direct execution unless the user explicitly asked for brainstorming.
 - For Codex grouped implementation planning and execution, use the `grouped-tasks` and `executing-grouped-tasks` skills as the source of truth instead of inventing implementation-agent names.
 - For OpenSpec task artifact creation or update, superpower plan creation, and Codex multi-step implementation planning, invoke `grouped-tasks` automatically whenever the output should be a grouped execution artifact.
 - Before starting coding or delegation from an existing grouped tasks file or grouped implementation plan, first check whether grouped routing already exists; if it does, invoke `executing-grouped-tasks` and preserve the declared group boundaries.
-- Codex review skills own their review pass profiles under `dotfiles/.codex/skills/review-pr/references/` and `dotfiles/.codex/skills/code-review/references/`. Do not invent generic review agents outside those workflows.
+- Codex review skills own their review pass profiles under `dotfiles/.codex/skills/comprehensive-code-review/references/`. Do not invent generic review agents outside those workflows.
 - Review flows should use the model and reasoning defaults declared by their pass profiles.
 - After a session of changes, run the linter and the type checker to ensure code quality on the files changed (never at repo level, until user explicitly requests it), run tests related to the changes and only if all was successful stage all changes and commit them following project guidelines.
 - If the files changed have some test related, exec it and ensure tests still working.

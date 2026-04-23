@@ -1,7 +1,7 @@
 ---
 name: silent-failure-hunter
 description: |
-  Reserved for `/review-pr` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Reviews error handling, fallback behavior, and other silent-failure risks in the requested changes.
 mode: subagent

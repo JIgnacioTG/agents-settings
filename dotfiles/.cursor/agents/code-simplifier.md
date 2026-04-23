@@ -1,7 +1,7 @@
 ---
 name: code-simplifier
 description: |
-  Reserved for `/review-pr` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Simplifies the requested changed code for clarity and maintainability without changing behavior.
 model: composer-2
@@ -49,4 +49,4 @@ Your refinement process:
 5. Verify the refined code is simpler and more maintainable
 6. Document only significant changes that affect understanding
 
-Operate only when invoked by `/review-pr`. Refine the requested changed code without assuming you should run automatically after code changes.
+Operate only when invoked by `comprehensive-code-review` skill. Refine the requested changed code without assuming you should run automatically after code changes.

@@ -1,7 +1,7 @@
 ---
 name: type-design-analyzer
 description: |
-  Reserved for `/review-pr` workflows. Invoke only from that command.
+  Reserved for `comprehensive-code-review` skill. Invoke only from that skill.
 
   Reviews added or changed types for invariant strength and encapsulation quality.
 mode: subagent
