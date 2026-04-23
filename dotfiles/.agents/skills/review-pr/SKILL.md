@@ -1,63 +1,26 @@
 ---
 name: review-pr
-description: Use when the user explicitly asks for a broad review of changed code or a pull request using the original pr-review-toolkit style passes such as comments, tests, errors, types, code, or simplify.
+description: Deprecated compatibility alias for PR review requests. Use when the user explicitly asks for a broad review of changed code or a pull request and the request should be routed to multi-agent-review, while keeping the legacy review-pr workflow usable during migration.
 ---
 
 # Review PR
 
-Run an explicit multi-pass review that mirrors the original Claude Code `pr-review-toolkit` workflow once invoked.
+> Deprecated: prefer `multi-agent-review` for new PR review requests. This legacy skill remains available for backward compatibility and routes the same staged review flow.
+
+This skill is a compatibility alias only.
 
 Do not use this skill unless the user explicitly requested review.
 
-## Pass Profiles
+Route the request to `multi-agent-review` and keep this file limited to migration guidance.
 
-Load only the profiles needed for the requested review:
+## Compatibility Behavior
 
-- `./references/code-reviewer.md`
-- `./references/code-simplifier.md`
-- `./references/comment-analyzer.md`
-- `./references/silent-failure-hunter.md`
-- `./references/type-design-analyzer.md`
-- `./references/pr-test-analyzer.md`
+- Preserve PR-oriented intent, narrowed review angles, and explicit posting requests when handing off to `multi-agent-review`.
+- Keep backward compatibility for older prompts, commands, and habits that still say `review-pr`.
+- Let `multi-agent-review` own triage, context gathering, pass selection, validation, aggregation, and reporting.
 
-Each profile declares its own `model` and `reasoning_effort`. Use those defaults directly.
+## Guardrails
 
-Do not use Spark by default for review.
-
-## Workflow
-
-1. Determine the review scope from the explicit user request.
-2. Parse requested aspects if present:
-   - `comments`
-   - `tests`
-   - `errors`
-   - `types`
-   - `code`
-   - `simplify`
-   - `all`
-   - `parallel`
-3. Identify changed files from `git diff --name-only`, and check whether a PR exists when that context matters.
-4. Determine applicable passes from the diff:
-   - always include `code-reviewer` for general quality
-   - include `pr-test-analyzer` when tests changed or behavior changed without obvious coverage
-   - include `comment-analyzer` when comments or docs changed
-   - include `silent-failure-hunter` when error handling, fallbacks, or retry paths changed
-   - include `type-design-analyzer` when new or changed types appear
-   - include `code-simplifier` only when `simplify` was explicitly requested or after a broad review with no critical blockers
-5. Run passes sequentially by default. Run them in parallel only when the user explicitly requested `parallel`.
-6. Aggregate findings into:
-   - critical issues
-   - important issues
-   - suggestions
-   - strengths
-   - recommended action
-7. Include file references and name which pass produced each finding.
-
-## Rules
-
-- Default to all applicable review passes only when the user asked for a broad review without narrowing scope.
-- Keep review high-signal and actionable.
-- Do not silently mutate code as part of review.
-- Treat `simplify` as a polish pass, not a blocker-finding pass.
-- Keep the original plugin behavior, but do not proactively trigger review on your own.
-- Do not invoke this skill from grouped execution unless review is explicitly requested.
+- Do not restate or fork the legacy PR review workflow in this alias.
+- Do not broaden the request beyond the PR or changed-code scope the user asked to review.
+- Do not post comments or take GitHub actions unless the active `multi-agent-review` workflow explicitly requires it.
