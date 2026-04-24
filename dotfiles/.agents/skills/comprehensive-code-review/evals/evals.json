@@ -28,6 +28,13 @@
       "expected_output": "A diff review that keeps the base review pass, conditionally activates frontend-focused specialists when warranted by the changed components, and avoids blanket pass activation.",
       "files": [],
       "expectations": []
+    },
+    {
+      "id": 5,
+      "prompt": "Please review someone else's PR https://github.com/acme/platform/pull/913 and leave the findings as PR review comments where they belong. Line-specific bugs should go on the changed line, file-level concerns on the file, and broad concerns at the PR level. Do not create a fix plan for me unless I ask for one.",
+      "expected_output": "A PR review that treats the task as external-review-context, validates findings, preserves comment targets for line/file/PR-level publication, and avoids remediation planning unless requested.",
+      "files": [],
+      "expectations": []
     }
   ]
 }
