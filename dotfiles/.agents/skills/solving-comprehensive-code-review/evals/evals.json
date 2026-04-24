@@ -1,0 +1,33 @@
+{
+  "skill_name": "solving-comprehensive-code-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The comprehensive-code-review report for my PR has one critical auth bug, two important missing test/error-handling findings, and a suggestion about simplifying a helper. Please create a plan to fix the findings before we implement anything.",
+      "expected_output": "A remediation plan that maps each review finding to stable IDs, groups related fixes, orders critical work first, and includes verification commands or checks for every finding.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "prompt": "I pasted validated findings from comprehensive-code-review above. Turn them into implementation groups for another agent to execute. Keep the original severity buckets and make sure every finding has tests or proof attached.",
+      "expected_output": "A traceable execution plan preserving severity, evidence, and attribution while defining implementation groups, tests, risks, and open blockers.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "prompt": "The review found frontend rendering regressions, a performance concern, and an accessibility suggestion. I do not want a new review; I need the fix plan for these existing findings.",
+      "expected_output": "A plan that avoids re-reviewing, groups UI/performance/accessibility remediation appropriately, and includes focused visual, interaction, accessibility, and regression verification.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "prompt": "We fetched unresolved review comments from my PR. Some map to real comprehensive-code-review findings, one is duplicate, and one is not actionable because the behavior is already covered elsewhere. Create the plan to solve my branch and make sure every PR comment gets either a fix+resolve step or a reply-only action.",
+      "expected_output": "A remediation plan that tracks findings by PR comment/thread, creates reply-only actions for duplicate or not-actionable comments, resolves comments only after verification, and ends with options to proceed with fixes or only leave PR comments.",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}
