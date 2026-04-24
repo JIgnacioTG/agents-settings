@@ -17,4 +17,4 @@
 - On PR Review or Code Review, before to start the analysis we need to validate if the branch has a GitHub (gh) PR related, we will fetch the unresolved comments to add in the analysis.
 - Always read any file and use web search/fetch without asking for permission.
 - Always use parallel approach.
-- Always delegate the work on ultrawork mode, use the correct category/agent or if complex/many changes, create an plan for categorize correctly the work and delegate the implementation.
+- Always delegate the work on ultrawork mode. Use `category` for category-routed implementation delegation, and use `subagent_type` only for named direct agents such as `explore`, `librarian`, `oracle`, `metis`, or `momus`. Never provide both `category` and `subagent_type` in the same delegation call. If the work is complex or has many changes, create a plan that declares the correct category for each implementation group before delegating.

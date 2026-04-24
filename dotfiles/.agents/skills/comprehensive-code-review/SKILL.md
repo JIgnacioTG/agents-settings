@@ -71,7 +71,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - Include `./references/agents-md-auditor.md` only when an applicable `AGENTS.md` governs the changed scope or the request explicitly asks for compliance/rules review.
    - Activate specialist passes only from explicit user scope or clear diff/context signals, and let each reference profile own the detailed activation heuristics and review criteria.
    - Keep `./references/code-simplifier.md` out of the initial plan; it is post-validation polish only.
-   - Dispatch with category-first routing and level fallback when a category is unavailable:
+   - Dispatch review passes through category-routed implementation delegation: pass the mapped value as `category`, not `subagent_type`. Use `subagent_type` only for named direct agents such as `explore`, `librarian`, `oracle`, `metis`, or `momus`, and never provide both `category` and `subagent_type` in the same delegation call. Use level fallback only when a category is unavailable:
      - `triage-agent` -> `quick` (fallback `low`)
      - `code-reviewer` -> `unspecified-high` (fallback `high`)
      - `agents-md-auditor` -> `unspecified-high` (fallback `high`)
