@@ -14,6 +14,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 - `./references/triage-agent.md`
 - `./references/code-reviewer.md`
 - `./references/agents-md-auditor.md`
+- `./references/ci-check-analyzer.md`
 - `./references/validator-agent.md`
 - `./references/aggregator-agent.md`
 
@@ -54,11 +55,13 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - If triage returns `proceed: false`, stop immediately and return only the short reason.
 
 4. Gather only the minimum orchestration context.
-    - Collect the review target, changed files, diff summary, and any explicitly requested review angles.
-    - When in PR mode, gather PR metadata and unresolved review discussion context if available from the chosen provider.
-    - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
-    - Gather applicable `AGENTS.md` files for the changed paths when compliance context may matter.
-    - Do not re-implement pass heuristics here; gather only enough to activate and feed the right profiles.
+   - Collect the review target, changed files, diff summary, and any explicitly requested review angles.
+   - When in PR mode, gather PR metadata and unresolved review discussion context if available from the chosen provider.
+   - When in PR mode, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
+   - Preserve CI check names, states or buckets, URLs, workflow names, events, descriptions, and timestamps so a downstream pass can report concrete PR-level issues instead of vague "CI failed" summaries.
+   - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
+   - Gather applicable `AGENTS.md` files for the changed paths when compliance context may matter.
+   - Do not re-implement pass heuristics here; gather only enough to activate and feed the right profiles.
 
 5. Determine review ownership and publication intent.
    - Treat the request as `owner-remediation-context` when the user is reviewing their own branch/work before fixing it.
@@ -75,6 +78,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
      - `triage-agent` -> `quick` (fallback `low`)
      - `code-reviewer` -> `unspecified-high` (fallback `high`)
      - `agents-md-auditor` -> `unspecified-high` (fallback `high`)
+     - `ci-check-analyzer` -> `quick` (fallback `low`)
      - `validator-agent` -> `unspecified-high` (fallback `high`)
      - `comment-analyzer` -> `writing` (fallback `low`)
      - `pr-test-analyzer` -> `unspecified-high` (fallback `high`)
@@ -92,6 +96,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - Use the request plus diff/context shape only to decide which specialist families should be considered.
    - Leave pass-specific trigger details, scope boundaries, and issue heuristics to the referenced specialist profiles.
    - Keep `agents-md-auditor` behind explicit `AGENTS.md` context or an explicit compliance/rules request.
+   - Activate `ci-check-analyzer` only in `pr-review` mode when PR CI/check context contains failing, cancelled, timed-out, action-required, or otherwise blocking checks.
    - Keep `history-context-analyzer` reserved for large, cross-cutting, or intent-sensitive diffs where snapshot-only review is likely insufficient.
 
 8. Normalize candidate categories before validation.
@@ -105,7 +110,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - When a pass emits ratings or another pass-specific schema instead of final severities, derive the nearest final level conservatively from the validator-supported evidence without re-implementing that profile's detailed rubric here.
 
 9. Dispatch passes in waves.
-   - First wave: run `code-reviewer`, optional `agents-md-auditor`, and all activated specialist passes in parallel.
+   - First wave: run `code-reviewer`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
    - Keep each pass scoped to the requested diff or changed-code surface only.
    - Preserve raw outputs, cited evidence, and pass attribution exactly as returned.
    - Do not run `code-simplifier` in the first wave.
@@ -125,12 +130,14 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
     - Send only validated findings plus explicit strengths to `./references/aggregator-agent.md`.
     - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
     - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
+    - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
     - Aggregation is reporting-only; it must not become a fresh review pass.
 
 13. Produce the final response.
     - Return sections in this exact order: `critical`, `important`, `suggestion`, `strengths`.
     - Include concise evidence, file references, and contributing-pass attribution for each finding.
     - For PR-mode reviews, include `comment_target` metadata for every actionable finding: `line`, `file`, or `pr`, plus path/line/thread details when known.
+    - For PR-mode reviews, include validated failing CI/check findings alongside code findings in the same severity sections; do not bury them in a separate status note.
     - If no validated findings survive, say so directly and include any meaningful strengths.
     - If GitHub/PR context was unavailable and review fell back to local diff context, say that the review used reduced context.
     - If the user asked to post review comments, prepare the comments for the chosen target level and only post when the active workflow has explicit posting approval.
@@ -154,6 +161,8 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 - If the request says `all`, run all conditionally applicable passes, not every reference file blindly.
 - If authenticated `gh` is unavailable, prefer MCP-provided PR metadata or payloads before local diff fallback.
 - If PR metadata or unresolved discussion context is unavailable, continue with diff-based review and note the reduced context.
+- If CI/check context is unavailable in PR mode, continue with the review and note that failing check status could not be fetched.
+- If CI/check context is available but has no failing or blocking checks, do not activate `ci-check-analyzer` and do not mention CI unless useful for context.
 - If PR comment/thread identifiers are unavailable, keep findings actionable but mark comment targets as `unlinked` instead of inventing IDs.
 - If a pass returns no findings, continue with the remaining stages.
 - If validation dismisses every candidate finding, skip dismissed items and return a clean review summary.

@@ -17,6 +17,7 @@ You receive:
 - optional strengths noted by prior passes
 - severity, confidence, rationale, and cited files or lines for each item
 - agent names or pass names for every reported item
+- PR-level metadata such as CI/check names, states, and URLs when a finding comes from `ci-check-analyzer`
 
 ## Scope
 
@@ -71,6 +72,14 @@ Each finding must include:
 - `evidence`: cited files, lines, and concise supporting rationale from validated inputs
 - `dedupe_note`: why items were merged or kept separate
 
+For CI/check findings, also preserve when provided:
+
+- `check_name`
+- `check_state`
+- `check_event`
+- `check_url`
+- `comment_target`: `pr`
+
 ## Rules
 
 - Do not invent findings, strengths, evidence, or severity changes not supported by prior validated inputs.
@@ -78,3 +87,4 @@ Each finding must include:
 - Do not rewrite a finding so aggressively that its original meaning changes.
 - Do not include dismissed or unvalidated items.
 - Do not broaden scope into fresh review, code reading, or solution design.
+- Do not drop validated CI/check findings merely because they are PR-level rather than file-line findings.
