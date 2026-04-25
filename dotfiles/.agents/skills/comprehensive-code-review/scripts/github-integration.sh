@@ -25,15 +25,17 @@ DIFF_FILE=""
 DIFF_TEXT=""
 THREADS_FILE=""
 THREADS_JSON=""
+CHECKS_JSON=""
 
 usage() {
   cat <<'EOF'
-Usage: github-integration.sh [--detect|--diff|--comments|--post] [--pr NUMBER] [--repo OWNER/REPO] [--url URL] [--approve-post] [--yes]
+Usage: github-integration.sh [--detect|--diff|--comments|--checks|--post] [--pr NUMBER] [--repo OWNER/REPO] [--url URL] [--approve-post] [--yes]
 
 Modes:
   --detect        Detect PR context and print the active mode.
   --diff          Print PR diff when GitHub context is available, otherwise fall back to local-diff.sh.
   --comments      Print unresolved review threads when available.
+  --checks        Print failing or blocking PR checks when available.
   --post          Post stdin to the active PR only after explicit approval.
 
 MCP fallback environment:
@@ -42,6 +44,7 @@ MCP fallback environment:
   PR_URL / GITHUB_PR_URL / REVIEW_PR_URL / MCP_PR_URL
   PR_DIFF / GITHUB_PR_DIFF / REVIEW_PR_DIFF / MCP_PR_DIFF
   PR_THREADS_JSON / GITHUB_PR_THREADS_JSON / REVIEW_PR_THREADS_JSON / MCP_PR_THREADS_JSON
+  PR_CHECKS_JSON / GITHUB_PR_CHECKS_JSON / REVIEW_PR_CHECKS_JSON / MCP_PR_CHECKS_JSON
 
 Posting is never automatic. Use --approve-post to confirm non-interactively.
 Large diffs are never fetched automatically beyond 100 files. Use --yes or CONFIRM_LARGE_DIFF=1 to confirm non-interactively.
@@ -137,6 +140,63 @@ for thread in threads:
 print(json.dumps(result, indent=2))'
 }
 
+filter_failing_checks() {
+  if have_command jq; then
+    jq '[.[]? | select(
+      (((.bucket // "") | tostring | ascii_downcase) == "fail") or
+      (((.bucket // "") | tostring | ascii_downcase) == "cancel") or
+      (((.bucket // "") | tostring | ascii_downcase) == "timed_out") or
+      (((.bucket // "") | tostring | ascii_downcase) == "action_required") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "failure") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "failed") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "error") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "cancelled") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "timed_out") or
+      (((.state // .conclusion // "") | tostring | ascii_downcase) == "action_required")
+    ) | {
+      name: (.name // ""),
+      workflow: (.workflow // ""),
+      bucket: (.bucket // ""),
+      state: (.state // .conclusion // ""),
+      event: (.event // ""),
+      description: (.description // ""),
+      link: (.link // .detailsUrl // ""),
+      startedAt: (.startedAt // ""),
+      completedAt: (.completedAt // "")
+    }]'
+    return 0
+  fi
+
+  python3 -c 'import json, sys
+checks = json.load(sys.stdin)
+if not isinstance(checks, list):
+    checks = []
+bad_buckets = {"fail", "cancel", "timed_out", "action_required"}
+bad_states = {"failure", "failed", "error", "cancelled", "timed_out", "action_required"}
+result = []
+for check in checks:
+    if not isinstance(check, dict):
+        continue
+    bucket = str(check.get("bucket") or "").lower()
+    state = str(check.get("state") or check.get("conclusion") or "").lower()
+    if bucket not in bad_buckets and state not in bad_states:
+        continue
+    result.append(
+        {
+            "name": check.get("name") or "",
+            "workflow": check.get("workflow") or "",
+            "event": check.get("event") or "",
+            "bucket": check.get("bucket") or "",
+            "state": check.get("state") or check.get("conclusion") or "",
+            "description": check.get("description") or "",
+            "link": check.get("link") or check.get("detailsUrl") or "",
+            "startedAt": check.get("startedAt") or "",
+            "completedAt": check.get("completedAt") or "",
+        }
+    )
+print(json.dumps(result, indent=2))'
+}
+
 gh_available() {
   have_command gh
 }
@@ -170,6 +230,7 @@ load_mcp_context() {
   DIFF_TEXT="$(first_non_empty "${PR_DIFF:-}" "${GITHUB_PR_DIFF:-}" "${REVIEW_PR_DIFF:-}" "${MCP_PR_DIFF:-}" 2>/dev/null || true)"
   THREADS_FILE="$(first_non_empty "${PR_THREADS_FILE:-}" "${GITHUB_PR_THREADS_FILE:-}" "${REVIEW_PR_THREADS_FILE:-}" "${MCP_PR_THREADS_FILE:-}" 2>/dev/null || true)"
   THREADS_JSON="$(first_non_empty "${PR_THREADS_JSON:-}" "${GITHUB_PR_THREADS_JSON:-}" "${REVIEW_PR_THREADS_JSON:-}" "${MCP_PR_THREADS_JSON:-}" 2>/dev/null || true)"
+  CHECKS_JSON="$(first_non_empty "${PR_CHECKS_JSON:-}" "${GITHUB_PR_CHECKS_JSON:-}" "${REVIEW_PR_CHECKS_JSON:-}" "${MCP_PR_CHECKS_JSON:-}" 2>/dev/null || true)"
 
   if [[ -n "$PR_URL" ]] && { [[ -z "$PR_NUMBER" ]] || [[ -z "$REPOSITORY" ]]; }; then
     while IFS= read -r parsed_line; do
@@ -266,6 +327,7 @@ detect_context() {
   local original_diff_text="$DIFF_TEXT"
   local original_threads_file="$THREADS_FILE"
   local original_threads_json="$THREADS_JSON"
+  local original_checks_json="$CHECKS_JSON"
 
   if load_gh_context; then
     return 0
@@ -278,6 +340,7 @@ detect_context() {
   DIFF_TEXT="$original_diff_text"
   THREADS_FILE="$original_threads_file"
   THREADS_JSON="$original_threads_json"
+  CHECKS_JSON="$original_checks_json"
 
   if load_mcp_context; then
     return 0
@@ -432,6 +495,23 @@ fetch_unresolved_threads_from_github() {
     -F number="$PR_NUMBER")"
 
   printf '%s' "$raw_json" | filter_unresolved_threads
+}
+
+fetch_failing_checks_from_github() {
+  local checks_json
+
+  if [[ -z "$PR_NUMBER" ]]; then
+    echo "No PR number available for check fetch." >&2
+    return 1
+  fi
+
+  if [[ -n "$REPOSITORY" ]]; then
+    checks_json="$(gh pr checks "$PR_NUMBER" --repo "$REPOSITORY" --json name,workflow,event,bucket,state,description,link,startedAt,completedAt 2>/dev/null)" || return 1
+  else
+    checks_json="$(gh pr checks "$PR_NUMBER" --json name,workflow,event,bucket,state,description,link,startedAt,completedAt 2>/dev/null)" || return 1
+  fi
+
+  printf '%s' "$checks_json" | filter_failing_checks
 }
 
 list_reviewable_worktree_files() {
@@ -592,6 +672,10 @@ main() {
         ACTION="comments"
         shift
         ;;
+      --checks)
+        ACTION="checks"
+        shift
+        ;;
       --post)
         ACTION="post"
         shift
@@ -686,6 +770,19 @@ main() {
         fetch_unresolved_threads_from_github
       else
         echo "No GitHub review threads available in local mode." >&2
+        printf '[]\n'
+      fi
+      ;;
+    checks)
+      if [[ "$MODE" == "github" && "$PROVIDER" == "mcp" && -n "$CHECKS_JSON" ]]; then
+        printf '%s\n' "$CHECKS_JSON" | filter_failing_checks
+        return 0
+      fi
+
+      if [[ "$MODE" == "github" ]] && gh_available && gh_authenticated; then
+        fetch_failing_checks_from_github
+      else
+        echo "No GitHub PR checks available in local mode." >&2
         printf '[]\n'
       fi
       ;;
