@@ -45,8 +45,8 @@
     },
     {
       "id": 7,
-      "prompt": "The comprehensive-code-review report above has critical and important findings. Create the plan to solve them using the new comprehensive review process, not the old solving skill.",
-      "expected_output": "The deprecated solving flow routes into comprehensive-code-review owner remediation planning and emits the standard markdown plan format without starting a separate review or losing traceability.",
+      "prompt": "The comprehensive-code-review report above has critical and important findings. Create the plan to solve them using the integrated comprehensive review remediation workflow.",
+      "expected_output": "The integrated comprehensive-code-review remediation workflow emits the standard markdown plan format without starting a separate review or losing traceability.",
       "files": [],
       "expectations": []
     }

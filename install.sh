@@ -37,6 +37,7 @@ OBSOLETE_PATHS=(
     ".cursor/agents/implementation-agent-fast.md"
     ".agents/skills/code-review"
     ".agents/skills/review-pr"
+    ".agents/skills/solving-comprehensive-code-review"
     ".config/opencode/commands/code-review.md"
     ".config/opencode/commands/review-pr.md"
     ".cursor/skills/code-review"
