@@ -40,8 +40,8 @@
       "variant": "medium"
     },
     "sisyphus-junior": {
-      "model": "fireworks-ai/accounts/fireworks/models/minimax-m2p7",
-      "variant": "medium"
+      "model": "openai/gpt-5.4",
+      "variant": "xhigh"
     }
   },
   "experimental": {
