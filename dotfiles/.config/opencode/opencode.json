@@ -2,7 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "agent": {
     "compaction": {
-      "model": "openai/gpt-5.4-mini-fast"
+      "model": "openai/gpt-5.4-mini"
     }
   },
   "mcp": {
@@ -34,55 +34,23 @@
     "websearch": "allow"
   },
   "plugin": [
-    "oh-my-openagent@latest",
-    "opencode-kimi-full"
+    "oh-my-openagent@latest"
   ],
   "provider": {
     "openai": {
       "models": {
-        "gpt-5.5": {
+        "gpt-5.4": {
           "limit": {
-            "context": 400000,
+            "context": 1050000,
             "input": 272000,
             "output": 128000
           }
         },
-        "gpt-5.5-fast": {
+        "gpt-5.4-fast": {
           "limit": {
-            "context": 400000,
+            "context": 1050000,
             "input": 272000,
             "output": 128000
-          }
-        }
-      }
-    },
-    "kimi-for-coding-oauth": {
-      "name": "Kimi For Coding (OAuth)",
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.kimi.com/coding/v1"
-      },
-      "models": {
-        "kimi-for-coding": {
-          "name": "Kimi For Coding",
-          "reasoning": true,
-          "options": {},
-          "variants": {
-            "off": {
-              "reasoning_effort": "off"
-            },
-            "auto": {
-              "reasoning_effort": "auto"
-            },
-            "low": {
-              "reasoning_effort": "low"
-            },
-            "medium": {
-              "reasoning_effort": "medium"
-            },
-            "high": {
-              "reasoning_effort": "high"
-            }
           }
         }
       }
