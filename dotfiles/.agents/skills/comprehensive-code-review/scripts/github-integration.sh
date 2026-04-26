@@ -34,7 +34,7 @@ Usage: github-integration.sh [--detect|--diff|--comments|--checks|--post] [--pr 
 Modes:
   --detect        Detect PR context and print the active mode.
   --diff          Print PR diff when GitHub context is available, otherwise fall back to local-diff.sh.
-  --comments      Print unresolved review threads when available.
+  --comments      Print unresolved review threads when available; fall back to review comments when thread API is unavailable.
   --checks        Print failing or blocking PR checks when available.
   --post          Post stdin to the active PR only after explicit approval.
 
@@ -140,6 +140,77 @@ for thread in threads:
 print(json.dumps(result, indent=2))'
 }
 
+
+filter_rest_review_comments() {
+  if have_command jq; then
+    jq 'if (.[0] | type) == "array" then add else . end | [.[]? | {
+      threadId: ((.pull_request_review_id // .id) | tostring),
+      reviewCommentId: .id,
+      path: (.path // ""),
+      line: .line,
+      originalLine: .original_line,
+      diffSide: .side,
+      isOutdated: ((.position == null) and (.line == null)),
+      resolution: "unknown-rest-fallback",
+      comments: [{
+        databaseId: .id,
+        url: (.html_url // .url // ""),
+        body: (.body // ""),
+        createdAt: (.created_at // ""),
+        author: (.user.login // "github-user")
+      }]
+    }]'
+    return 0
+  fi
+
+  python3 -c 'import json, sys
+payload = json.load(sys.stdin)
+if isinstance(payload, list) and payload and all(isinstance(page, list) for page in payload):
+    comments = [comment for page in payload for comment in page]
+elif isinstance(payload, list):
+    comments = payload
+else:
+    comments = []
+result = []
+for comment in comments:
+    if not isinstance(comment, dict):
+        continue
+    result.append(
+        {
+            "threadId": str(comment.get("pull_request_review_id") or comment.get("id") or ""),
+            "reviewCommentId": comment.get("id"),
+            "path": comment.get("path") or "",
+            "line": comment.get("line"),
+            "originalLine": comment.get("original_line"),
+            "diffSide": comment.get("side"),
+            "isOutdated": comment.get("position") is None and comment.get("line") is None,
+            "resolution": "unknown-rest-fallback",
+            "comments": [
+                {
+                    "databaseId": comment.get("id"),
+                    "url": comment.get("html_url") or comment.get("url") or "",
+                    "body": comment.get("body") or "",
+                    "createdAt": comment.get("created_at") or "",
+                    "author": (comment.get("user") or {}).get("login", "github-user"),
+                }
+            ],
+        }
+    )
+print(json.dumps(result, indent=2))'
+}
+
+fetch_review_comments_from_github_rest() {
+  local endpoint
+
+  if [[ -z "$PR_NUMBER" || -z "$REPOSITORY" ]]; then
+    echo "No PR number or repository available for review comment fallback." >&2
+    return 1
+  fi
+
+  endpoint="repos/$REPOSITORY/pulls/$PR_NUMBER/comments"
+  gh api --paginate --slurp "$endpoint" | filter_rest_review_comments
+}
+
 filter_failing_checks() {
   if have_command jq; then
     jq '[.[]? | select(
@@ -241,10 +312,6 @@ load_mcp_context() {
       fi
       parsed_index=$((parsed_index + 1))
     done < <(parse_pr_url "$PR_URL")
-  fi
-
-  if [[ -n "$DIFF_FILE" || -n "$THREADS_FILE" ]]; then
-    clear_mcp_file_payloads
   fi
 
   if [[ -n "$PR_NUMBER" || -n "$PR_URL" || -n "$REPOSITORY" ]]; then
@@ -473,6 +540,7 @@ enforce_github_large_diff_gate() {
 fetch_unresolved_threads_from_github() {
   local owner name
   local raw_json
+  local graphql_status=0
 
   if [[ -z "$PR_NUMBER" ]]; then
     echo "No PR number available for comment fetch." >&2
@@ -492,9 +560,15 @@ fetch_unresolved_threads_from_github() {
     -f query='query($owner:String!, $name:String!, $number:Int!) { repository(owner:$owner, name:$name) { pullRequest(number:$number) { reviewThreads(first:100) { nodes { id isResolved isOutdated path line originalLine diffSide comments(first:20) { nodes { databaseId url body createdAt author { login } } } } } } } }' \
     -f owner="$owner" \
     -f name="$name" \
-    -F number="$PR_NUMBER")"
+    -F number="$PR_NUMBER" 2>/dev/null)" || graphql_status=$?
 
-  printf '%s' "$raw_json" | filter_unresolved_threads
+  if [[ $graphql_status -eq 0 ]] && [[ -n "$raw_json" ]]; then
+    printf '%s' "$raw_json" | filter_unresolved_threads
+    return 0
+  fi
+
+  echo "GraphQL reviewThreads unavailable; falling back to REST review comments with unknown resolution state." >&2
+  fetch_review_comments_from_github_rest
 }
 
 fetch_failing_checks_from_github() {

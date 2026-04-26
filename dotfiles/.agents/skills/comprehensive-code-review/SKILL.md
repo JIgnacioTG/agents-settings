@@ -1,11 +1,11 @@
 ---
 name: comprehensive-code-review
-description: Use when the user explicitly asks for a code review, PR review, or diff review that should be split into staged, role-based passes and validated before reporting. Also use it when the user wants findings posted back to someone else's PR as line, file, or PR-level review comments.
+description: Use when the user explicitly asks for a code review, PR review, or diff review that should be split into staged, role-based agent passes, validated, and reported. Also use it when the user wants findings posted back to someone else's PR, or when they own a PR/diff and need a traceable markdown remediation plan for validated findings.
 ---
 
 # Multi-Agent Review
 
-Run an explicit orchestration wrapper for staged, role-based review. This file decides mode, triage, context gathering, pass selection, dispatch, validation, aggregation, and final output. Detailed heuristics stay in the reference profiles.
+Run an explicit orchestration wrapper for staged, role-based review. This file decides mode, triage, context gathering, pass selection, dispatch, validation, aggregation, final output, and owner remediation-plan artifacts. Detailed heuristics stay in the reference profiles.
 
 ## Reference Profiles
 
@@ -30,6 +30,17 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 - `./references/ui-ux-agent.md`
 - `./references/architecture-agent.md`
 - `./references/code-simplifier.md`
+
+## Required Reference Loading and Agent Dispatch Contract
+
+This skill is an orchestration process, not a single-pass checklist. Every activated role must run as a delegated agent pass with its reference profile loaded before dispatch.
+
+- Load the relevant reference file immediately before preparing that pass prompt. Do not rely on memory of the profile.
+- Dispatch every activated pass through `task(...)` with the mapped `category`, `load_skills=[]`, and explicit `run_in_background` behavior. Use `subagent_type` only for named direct agents such as `explore`, `librarian`, `oracle`, `metis`, or `momus`.
+- Do not merge multiple role profiles into one generic reviewer. Separate agents preserve independent failure modes and reduce skipped checks.
+- Preserve each pass result, including empty results, so the final report can show which mandatory passes ran and why any conditional pass did not run.
+- If a required pass cannot run because tooling is unavailable, record it as `not-run` with the concrete reason instead of silently skipping it.
+
 
 ## Orchestration Workflow
 
@@ -56,7 +67,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 
 4. Gather only the minimum orchestration context.
    - Collect the review target, changed files, diff summary, and any explicitly requested review angles.
-   - When in PR mode, gather PR metadata and unresolved review discussion context if available from the chosen provider.
+   - When in PR mode, gather PR metadata and unresolved review discussion context if available from the chosen provider. Prefer GraphQL `reviewThreads`; if unavailable, accept REST review comments with unknown resolution state and preserve that limitation.
    - When in PR mode, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
    - Preserve CI check names, states or buckets, URLs, workflow names, events, descriptions, and timestamps so a downstream pass can report concrete PR-level issues instead of vague "CI failed" summaries.
    - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
@@ -67,13 +78,14 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - Treat the request as `owner-remediation-context` when the user is reviewing their own branch/work before fixing it.
    - Treat the request as `external-review-context` when the user is reviewing someone else's branch or PR and does not own the implementation work.
    - Detect `publish-review-comments` when the user explicitly asks to leave, post, submit, or publish findings on the PR.
-   - In `external-review-context`, prefer preparing PR review comments over creating a remediation plan; remediation planning belongs to `solving-comprehensive-code-review` only when the user intends to fix the work.
+   - In `external-review-context`, prefer preparing PR review comments over creating a remediation plan.
+   - In `owner-remediation-context`, create a markdown remediation-plan artifact after validated findings are aggregated when the mode is `diff-review`, `request-review`, or `pr-review`.
 
 6. Build the pass plan.
    - Always include `./references/code-reviewer.md` for general bug-finding.
    - Include `./references/agents-md-auditor.md` only when an applicable `AGENTS.md` governs the changed scope or the request explicitly asks for compliance/rules review.
    - Activate specialist passes only from explicit user scope or clear diff/context signals, and let each reference profile own the detailed activation heuristics and review criteria.
-   - Keep `./references/code-simplifier.md` out of the initial plan; it is post-validation polish only.
+   - Keep `./references/code-simplifier.md` out of the first wave; it is a mandatory post-validation polish wave for broad reviews once blocker status is known.
    - Dispatch review passes through category-routed implementation delegation: pass the mapped value as `category`, not `subagent_type`. Use `subagent_type` only for named direct agents such as `explore`, `librarian`, `oracle`, `metis`, or `momus`, and never provide both `category` and `subagent_type` in the same delegation call. Use level fallback only when a category is unavailable:
      - `triage-agent` -> `quick` (fallback `low`)
      - `code-reviewer` -> `unspecified-high` (fallback `high`)
@@ -121,27 +133,92 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
    - Drop dismissed items and all findings below the validator confidence threshold defined in the validator profile.
    - Preserve source-pass attribution for every surviving item.
 
-11. Optionally run the simplification pass.
-    - Run `./references/code-simplifier.md` only when simplification or polish was explicitly requested, or when broad review asked for improvement suggestions after the main review is otherwise acceptable.
-    - Require validation to show no open `critical` blockers before dispatching it.
-    - Treat simplifier output as optional `suggestion` material, then validate it before aggregation.
+11. Run the simplification pass as a required second wave when safe.
+     - Load `./references/code-simplifier.md` and dispatch `code-simplifier` after first-wave validation for every broad `pr-review`, `diff-review`, or `request-review` unless validated `critical` blockers remain.
+     - Also dispatch it for any targeted review that explicitly asks for simplification, maintainability polish, cleanup, refactoring suggestions, or broad improvement suggestions.
+     - If validated `critical` blockers remain, do not dispatch `code-simplifier`; record `code-simplifier: skipped-critical-blockers` in the pass ledger and explain that simplification is deferred until correctness/security blockers are addressed.
+     - Treat simplifier output as `suggestion` material only, then validate it before aggregation.
+     - If the simplifier returns no findings, preserve the empty pass result so the final report proves the agent was not skipped.
 
 12. Aggregate validated results.
-    - Send only validated findings plus explicit strengths to `./references/aggregator-agent.md`.
-    - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
-    - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
-    - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
-    - Aggregation is reporting-only; it must not become a fresh review pass.
+     - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
+     - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
+     - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
+     - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
+     - Aggregation is reporting-only; it must not become a fresh review pass.
 
-13. Produce the final response.
+13. Create an owner remediation-plan artifact when applicable.
+     - Create this markdown file only for `owner-remediation-context` in `diff-review`, `request-review`, or `pr-review` mode. Do not create it for `external-review-context` unless the user explicitly says they own the fix or asks for a fix plan.
+     - Save the file under `.sisyphus/plans/` when that directory exists; otherwise save it as `comprehensive-code-review-plan.md` in the workspace root. Use a unique suffix when needed to avoid overwriting an unrelated plan.
+     - Base the plan only on validated findings and tracked PR comments; do not invent fixes for dismissed findings.
+     - Use the exact plan template in `Owner Remediation Plan Artifact` below.
+
+14. Produce the final response.
     - Return sections in this exact order: `critical`, `important`, `suggestion`, `strengths`.
     - Include concise evidence, file references, and contributing-pass attribution for each finding.
     - For PR-mode reviews, include `comment_target` metadata for every actionable finding: `line`, `file`, or `pr`, plus path/line/thread details when known.
     - For PR-mode reviews, include validated failing CI/check findings alongside code findings in the same severity sections; do not bury them in a separate status note.
     - If no validated findings survive, say so directly and include any meaningful strengths.
     - If GitHub/PR context was unavailable and review fell back to local diff context, say that the review used reduced context.
+    - If an owner remediation-plan artifact was created, include its path and summarize which finding IDs it covers.
+    - Include a compact pass ledger with every required/activated pass marked `ran`, `skipped:<reason>`, or `not-run:<reason>` so missing agents are visible.
     - If the user asked to post review comments, prepare the comments for the chosen target level and only post when the active workflow has explicit posting approval.
     - If the user is reviewing someone else's PR and posting is not yet approved, end with the two available next steps: `post comments to the PR` or `return findings only`.
+
+
+## Owner Remediation Plan Artifact
+
+When owner remediation planning is required, create a markdown file with this exact structure:
+
+```markdown
+# Comprehensive Code Review Remediation Plan
+
+## Review source
+- Source: <PR URL, local diff command, report path, or conversation>
+- Scope: <branch/diff/files>
+- Owner context: <why this is owner-remediation-context>
+- Assumptions: <only concrete assumptions that affect execution>
+
+## Finding map
+| ID | Severity | Status | Source pass | Source comment/thread | Finding | Evidence | Fix group | Comment action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Execution groups
+### Group 1: <short outcome-focused name>
+- Findings: <IDs>
+- Why first: <dependency/risk reason>
+- Files to inspect/change: <paths>
+- Implementation approach:
+  1. <step>
+  2. <step>
+- Tests to add/update: <paths or test descriptions>
+- Verification: <commands/checks>
+- Risks and rollback: <main risk and safe fallback>
+
+## PR comment plan
+| Comment/thread | Related finding | Action | Reply summary | Resolve when |
+| --- | --- | --- | --- | --- |
+
+## Verification matrix
+| Finding ID | Required proof | Command or check |
+| --- | --- | --- |
+
+## Final options
+1. Proceed to fix the findings using this plan.
+2. Only leave or prepare comments for the findings in the PR.
+
+## Open questions or blockers
+- <only items that cannot be resolved from available context>
+```
+
+Plan rules:
+
+- Assign stable finding IDs such as `CR-1`, `CR-2`, or `CRITICAL-1` and reuse them in the final response.
+- Preserve severity, validator confidence, source-pass attribution, file evidence, and PR thread/comment identifiers.
+- Group findings by shared root cause and implementation dependency, not by the agent that found them.
+- Include reply-only actions for duplicate, not-actionable, or already-addressed PR comments so no fetched comment disappears.
+- Define verification before implementation for every finding group.
+- Stop after writing the plan unless the user explicitly asked to implement fixes too.
 
 ## PR Comment Publication Targets
 
@@ -156,7 +233,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 ## Fallback Rules
 
 - If triage says not to proceed, stop immediately.
-- If no specialist pass activates, run only `code-reviewer`, plus `agents-md-auditor` when compliance context applies.
+- If no specialist pass activates, run `code-reviewer`, plus `agents-md-auditor` when compliance context applies, then run `code-simplifier` as the second wave when no validated `critical` blockers remain.
 - If the request names explicit passes, honor that narrower scope unless triage blocks review.
 - If the request says `all`, run all conditionally applicable passes, not every reference file blindly.
 - If authenticated `gh` is unavailable, prefer MCP-provided PR metadata or payloads before local diff fallback.
@@ -167,22 +244,22 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 - If a pass returns no findings, continue with the remaining stages.
 - If validation dismisses every candidate finding, skip dismissed items and return a clean review summary.
 - If multiple passes report the same issue with different labels, preserve original labels for attribution and let validation plus aggregation determine the final merged level.
-- If simplification was requested but blocker-level findings remain, skip `code-simplifier` and report why.
+- If simplification was requested or broad review would normally require polish but blocker-level findings remain, skip `code-simplifier` and report why in the pass ledger.
 
 ## Guardrails
 
 - Stay high-signal and evidence-based.
 - Keep detailed review heuristics, scoring, and detection logic in the reference profiles.
-- Use this file for orchestration only: mode detection, context selection, pass selection, dispatch, normalization, validation, aggregation, and reporting.
+- Use this file for orchestration only: mode detection, context selection, pass selection, dispatch, normalization, validation, aggregation, remediation-plan artifact creation, and reporting.
 - Do not duplicate reference-pass internals here.
 - Do not activate specialist passes outside their conditional rules.
 - Do not widen scope beyond the requested diff or changed code.
 - Do not auto-post review comments without explicit workflow approval.
-- Do not create remediation plans for someone else's PR unless the user explicitly says they own the fix or asks for a fix plan.
+- Do not create remediation-plan artifacts for someone else's PR unless the user explicitly says they own the fix or asks for a fix plan.
 - Do not lose PR thread/comment traceability when unresolved review comments are part of the input.
 
 ## Role of This File
 
 - Each reference profile owns its own scope, activation detail, and output schema.
-- This wrapper owns the staged workflow glue across mode detection, triage, context gathering, agent dispatch, validation, aggregation, and final output.
+- This wrapper owns the staged workflow glue across mode detection, triage, context gathering, agent dispatch, validation, aggregation, owner remediation-plan artifacts, and final output.
 - Keep helper-script behavior and implementation details outside this file except for the context-source preference order needed to orchestrate review correctly.

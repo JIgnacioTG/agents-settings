@@ -35,6 +35,20 @@
       "expected_output": "A PR review that treats the task as external-review-context, validates findings, preserves comment targets for line/file/PR-level publication, and avoids remediation planning unless requested.",
       "files": [],
       "expectations": []
+    },
+    {
+      "id": 6,
+      "prompt": "Please review my PR https://github.com/acme/platform/pull/944. I own this branch, so after the validated findings are ready, also create the markdown plan I can use to fix them. Include unresolved review comments if available and do not skip simplification polish if there are no critical blockers.",
+      "expected_output": "A PR review in owner-remediation-context that runs required agent passes including code-simplifier when safe, reports validated findings, and writes a markdown remediation-plan artifact with finding IDs, fix groups, comment actions, and verification.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 7,
+      "prompt": "The comprehensive-code-review report above has critical and important findings. Create the plan to solve them using the new comprehensive review process, not the old solving skill.",
+      "expected_output": "The deprecated solving flow routes into comprehensive-code-review owner remediation planning and emits the standard markdown plan format without starting a separate review or losing traceability.",
+      "files": [],
+      "expectations": []
     }
   ]
 }
