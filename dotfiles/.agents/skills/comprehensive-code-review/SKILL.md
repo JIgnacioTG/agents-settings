@@ -149,7 +149,9 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 
 13. Create an owner remediation-plan artifact when applicable.
      - Create this markdown file only for `owner-remediation-context` in `diff-review`, `request-review`, or `pr-review` mode. Do not create it for `external-review-context` unless the user explicitly says they own the fix or asks for a fix plan.
-     - Save the file under `.sisyphus/plans/` when that directory exists; otherwise save it as `comprehensive-code-review-plan.md` in the workspace root. Use a unique suffix when needed to avoid overwriting an unrelated plan.
+     - Save the file under `docs/plans/` at the repository root. Create the directory if it does not exist.
+     - Name the file `{YYYY-mm-dd}-{plan-name}.md`, using the current local date and a short kebab-case plan name derived from the review target or dominant fix theme, for example `2026-04-26-auth-review-remediation.md`.
+     - If the target filename already exists, append a numeric suffix such as `{YYYY-mm-dd}-{plan-name}-2.md` instead of overwriting it.
      - Base the plan only on validated findings and tracked PR comments; do not invent fixes for dismissed findings.
      - Use the exact plan template in `Owner Remediation Plan Artifact` below.
 
@@ -160,7 +162,7 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
     - For PR-mode reviews, include validated failing CI/check findings alongside code findings in the same severity sections; do not bury them in a separate status note.
     - If no validated findings survive, say so directly and include any meaningful strengths.
     - If GitHub/PR context was unavailable and review fell back to local diff context, say that the review used reduced context.
-    - If an owner remediation-plan artifact was created, include its path and summarize which finding IDs it covers.
+    - If an owner remediation-plan artifact was created, include both a concise summary and the project-relative saved path, for example `docs/plans/2026-04-26-auth-review-remediation.md`, and summarize which finding IDs it covers.
     - Include a compact pass ledger with every required/activated pass marked `ran`, `skipped:<reason>`, or `not-run:<reason>` so missing agents are visible.
     - If the user asked to post review comments, prepare the comments for the chosen target level and only post when the active workflow has explicit posting approval.
     - If the user is reviewing someone else's PR and posting is not yet approved, end with the two available next steps: `post comments to the PR` or `return findings only`.
@@ -213,6 +215,7 @@ When owner remediation planning is required, create a markdown file with this ex
 
 Plan rules:
 
+- Choose a concise `{plan-name}` that identifies the review scope or dominant remediation theme, lowercased and slugged with hyphens.
 - Assign stable finding IDs such as `CR-1`, `CR-2`, or `CRITICAL-1` and reuse them in the final response.
 - Preserve severity, validator confidence, source-pass attribution, file evidence, and PR thread/comment identifiers.
 - Group findings by shared root cause and implementation dependency, not by the agent that found them.
