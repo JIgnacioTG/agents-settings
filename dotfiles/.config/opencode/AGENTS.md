@@ -18,3 +18,4 @@
 - Always read any file and use web search/fetch without asking for permission.
 - Always use parallel approach.
 - Always delegate the work on ultrawork mode. Use `category` for category-routed implementation delegation, and use `subagent_type` only for named direct agents such as `explore`, `librarian`, `oracle`, `metis`, or `momus`. Never provide both `category` and `subagent_type` in the same delegation call. If the work is complex or has many changes, create a plan that declares the correct category for each implementation group before delegating.
+- When changing OpenCode config files that should also apply inside devcontainers, update the mirrored configs in `/Users/ignacio/repositories/reserhub-revenue-full/.devcontainer-persistent/config/opencode` and `/Users/ignacio/repositories/adara-crm/.devcontainer-persistent/config/opencode`.
