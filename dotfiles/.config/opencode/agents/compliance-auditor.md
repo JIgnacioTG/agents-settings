@@ -5,7 +5,7 @@ description: |
 
   Audits changed files against the scoped `AGENTS.md` rules that apply to them.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: medium
 ---
 

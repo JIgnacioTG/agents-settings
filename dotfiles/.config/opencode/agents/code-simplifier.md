@@ -5,7 +5,7 @@ description: |
 
   Simplifies the requested changed code for clarity and maintainability without changing behavior.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: medium
 ---
 

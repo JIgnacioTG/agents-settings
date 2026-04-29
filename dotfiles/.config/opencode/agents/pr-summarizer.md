@@ -5,7 +5,7 @@ description: |
 
   Summarizes a pull request or diff for downstream review agents.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: low
 ---
 
