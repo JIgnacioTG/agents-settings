@@ -9,6 +9,8 @@
 - If the project has a `docker-compose.yml` or `docker-compose.worktree.yml` file, run all related project commands (linting, type checking, tests, etc.) with docker: `docker compose -f docker-compose.worktree.yml run --rm [service] [command]`, prefer worktree version over normal one.
 - Never add inline comments, instead separate in methods with self explanation names.
 - On user requesting manually test over playwright or test with playwright ui, run all process needed to reach the playwright ui using the env vars that devcontainer uses, if are empty use the default ones. Use `nohup` to prevent the process from being killed when the session ends.
+- For OpenSpec explore and proposal/design/tasks artifact generation, use the `openspec-workflow` skill so open questions are surfaced before generation and final output summarizes artifact highlights and paths.
+- For frontend E2E validation with Playwright, use the `e2e-evidence` skill so screenshots are captured under `.sisyphus/evidence/`, attached to Playwright reports when applicable, and exact evidence paths are listed in the final output.
 - On NodeJS project, don't try to build, instead rely on lint and type check.
 - On requesting an inline console script, save it at `scripts/` subfolder and make it copy and pastable (without blank lines, console friendly, comments only on top of file).
 - If we are in a git repository, always commit implementation changes. Design docs and implementation plans are excluded from forced commit only when those artifacts are gitignored (i.e., they should not be force-committed when gitignored).
