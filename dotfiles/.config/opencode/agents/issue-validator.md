@@ -5,7 +5,7 @@ description: |
 
   Validates issues flagged by review agents and filters out false positives.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: high
 ---
 

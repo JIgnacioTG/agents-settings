@@ -5,7 +5,7 @@ description: |
 
   Reviews the requested diff for high-signal bugs within the command-defined review scope.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: xhigh
 ---
 

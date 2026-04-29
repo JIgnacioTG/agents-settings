@@ -5,7 +5,7 @@ description: |
 
   Reviews error handling, fallback behavior, and other silent-failure risks in the requested changes.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: xhigh
 ---
 
