@@ -3,7 +3,7 @@ name: test-setup-explorer
 description: |
   Use this agent before any grouped test or coverage lane. It analyzes the implementation and current tests, finds reusable fixtures, factories, seeds, helpers, and harness setup, and reports the missing setup that the downstream implementation lane must create or reuse.
 mode: subagent
-model: openai/gpt-5.4-mini
+model: openai/gpt-5.4-mini-fast
 reasoningEffort: high
 ---
 

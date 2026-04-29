@@ -5,7 +5,7 @@ description: |
 
   Reviews added or changed types for invariant strength and encapsulation quality.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: xhigh
 ---
 

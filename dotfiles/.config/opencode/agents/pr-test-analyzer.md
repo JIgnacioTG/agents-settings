@@ -5,7 +5,7 @@ description: |
 
   Reviews test coverage quality and identifies high-value gaps in the requested diff.
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5-fast
 reasoningEffort: high
 ---
 
