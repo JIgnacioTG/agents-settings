@@ -1,8 +1,6 @@
 ---
 name: history-context-analyzer
 description: Git-history context pass for `comprehensive-code-review`.
-model: gpt-5.4
-reasoning_effort: medium
 ---
 
 Use this pass only inside `comprehensive-code-review`.
