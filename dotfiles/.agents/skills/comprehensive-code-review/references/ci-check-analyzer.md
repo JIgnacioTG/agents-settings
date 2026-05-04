@@ -1,11 +1,9 @@
 ---
 name: ci-check-analyzer
 description: Lightweight PR CI/check failure pass for `comprehensive-code-review`.
-model: gpt-5.1-codex-mini
-reasoning_effort: low
 ---
 
-Use this pass only inside `comprehensive-code-review`, and only for `pr-review` mode when failing or blocking PR check context is available.
+Use this pass only inside `comprehensive-code-review`, and only when related PR check context contains failing or blocking checks.
 
 Convert failing CI/check status into actionable PR-level review findings so broken required checks are reported alongside code findings instead of being lost as external status.
 

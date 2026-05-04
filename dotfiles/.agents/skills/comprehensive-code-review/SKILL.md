@@ -53,22 +53,24 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
      - `targeted-review`: explicit narrowing to code, tests, comments, security, performance, architecture, types, UI/UX, simplification, or compliance.
    - If review was not explicitly requested, do not run this skill.
 
-2. Resolve context source before triage.
-   - Prefer GitHub PR context from authenticated `gh` when available.
+2. Resolve review surface and PR context before triage.
+   - The changed-code diff is the review surface and is mandatory for every review mode. For PR reviews, gather the PR diff; for diff/request reviews, gather the requested patch, commit range, branch comparison, or local changed-code diff.
+   - Prefer GitHub PR context from authenticated `gh` whenever the prompt names a PR, the current branch has a related PR, or the review target can be mapped to a PR.
    - If `gh` context is unavailable, use MCP-provided PR metadata, diff payloads, and unresolved-thread payloads when present.
-   - If neither GitHub source is available, fall back to local diff or changed-code review.
+   - If no PR context exists, continue with the resolved diff or changed-code review surface.
    - Preserve which source was used so later output can mention reduced context when necessary.
 
 3. Run triage first.
    - Load `./references/triage-agent.md` before any deep review.
-   - Give triage the resolved review mode, PR state when known, and a short summary of the diff target.
-   - Let triage decide whether review should proceed for draft PRs, closed PRs, trivial or automated changes, already-reviewed requests, or diffs with no code changes.
+   - Give triage the resolved review mode, diff target, PR state when known, `reviewDecision` when available, and whether unresolved comments or prior review discussions were found.
+   - Triage classifies scope, priority, and contextual risks; it does not block PR review because a PR is draft, closed, previously reviewed, automated, or already has `reviewDecision: true`. Those states are context that can reduce urgency, change emphasis, or explain residual risk.
+   - Triage may return `proceed: false` only when there is no reviewable diff or changed-code surface, the explicit target cannot be resolved, or the request is not actually a review request.
    - If triage returns `proceed: false`, stop immediately and return only the short reason.
 
 4. Gather only the minimum orchestration context.
    - Collect the review target, changed files, diff summary, and any explicitly requested review angles.
-   - When in PR mode, gather PR metadata and unresolved review discussion context if available from the chosen provider. Prefer GraphQL `reviewThreads`; if unavailable, accept REST review comments with unknown resolution state and preserve that limitation.
-   - When in PR mode, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
+   - Whenever a related PR exists in any status, gather PR metadata and unresolved review discussion context if available from the chosen provider. Prefer GraphQL `reviewThreads`; if unavailable, accept REST review comments with unknown resolution state and preserve that limitation.
+   - Whenever a related PR exists, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
    - Preserve CI check names, states or buckets, URLs, workflow names, events, descriptions, and timestamps so a downstream pass can report concrete PR-level issues instead of vague "CI failed" summaries.
    - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
    - Gather applicable `AGENTS.md` files for the changed paths when compliance context may matter.
@@ -108,7 +110,7 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Use the request plus diff/context shape only to decide which specialist families should be considered.
    - Leave pass-specific trigger details, scope boundaries, and issue heuristics to the referenced specialist profiles.
    - Keep `agents-md-auditor` behind explicit `AGENTS.md` context or an explicit compliance/rules request.
-   - Activate `ci-check-analyzer` only in `pr-review` mode when PR CI/check context contains failing, cancelled, timed-out, action-required, or otherwise blocking checks.
+   - Activate `ci-check-analyzer` whenever related PR CI/check context contains failing, cancelled, timed-out, action-required, or otherwise blocking checks.
    - Keep `history-context-analyzer` reserved for large, cross-cutting, or intent-sensitive diffs where snapshot-only review is likely insufficient.
 
 8. Normalize candidate categories before validation.
@@ -235,13 +237,13 @@ Plan rules:
 
 ## Fallback Rules
 
-- If triage says not to proceed, stop immediately.
+- If triage says not to proceed, stop immediately only when there is no reviewable diff or changed-code surface, the explicit target cannot be resolved, or the request is not actually a review request.
 - If no specialist pass activates, run `code-reviewer`, plus `agents-md-auditor` when compliance context applies, then run `code-simplifier` as the second wave when no validated `critical` blockers remain.
 - If the request names explicit passes, honor that narrower scope unless triage blocks review.
 - If the request says `all`, run all conditionally applicable passes, not every reference file blindly.
 - If authenticated `gh` is unavailable, prefer MCP-provided PR metadata or payloads before local diff fallback.
 - If PR metadata or unresolved discussion context is unavailable, continue with diff-based review and note the reduced context.
-- If CI/check context is unavailable in PR mode, continue with the review and note that failing check status could not be fetched.
+- If CI/check context is unavailable for a related PR, continue with the review and note that failing check status could not be fetched.
 - If CI/check context is available but has no failing or blocking checks, do not activate `ci-check-analyzer` and do not mention CI unless useful for context.
 - If PR comment/thread identifiers are unavailable, keep findings actionable but mark comment targets as `unlinked` instead of inventing IDs.
 - If a pass returns no findings, continue with the remaining stages.
