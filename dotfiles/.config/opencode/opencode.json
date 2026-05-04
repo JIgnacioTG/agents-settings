@@ -35,7 +35,7 @@
     "websearch": "allow"
   },
   "plugin": [
-    "oh-my-openagent@latest"
+    "oh-my-openagent@3.17.13"
   ],
   "provider": {
     "openai": {
