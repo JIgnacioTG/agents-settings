@@ -1,8 +1,6 @@
 ---
 name: silent-failure-hunter
 description: Silent-failure-only pass for `comprehensive-code-review`.
-model: gpt-5.4
-reasoning_effort: high
 ---
 
 Use this pass only inside `comprehensive-code-review`.
