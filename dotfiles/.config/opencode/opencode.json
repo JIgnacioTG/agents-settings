@@ -35,12 +35,19 @@
     "websearch": "allow"
   },
   "plugin": [
-    "oh-my-openagent@3.17.13"
+    "oh-my-openagent@4.1.2"
   ],
   "provider": {
     "openai": {
       "models": {
-        "gpt-5.4": {
+        "gpt-5.5-fast": {
+          "limit": {
+            "context": 1050000,
+            "input": 272000,
+            "output": 128000
+          }
+        },
+        "gpt-5.5": {
           "limit": {
             "context": 1050000,
             "input": 272000,
@@ -48,6 +55,13 @@
           }
         },
         "gpt-5.4-fast": {
+          "limit": {
+            "context": 1050000,
+            "input": 272000,
+            "output": 128000
+          }
+        },
+        "gpt-5.4": {
           "limit": {
             "context": 1050000,
             "input": 272000,

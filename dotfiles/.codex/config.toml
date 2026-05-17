@@ -36,6 +36,9 @@ network_access = true
 [tui]
 alternate_screen = "never"
 
+[tui.model_availability_nux]
+"gpt-5.5" = 3
+
 [mcp_servers.linear]
 url = "https://mcp.linear.app/mcp"
 
