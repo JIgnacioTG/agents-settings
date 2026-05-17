@@ -10,7 +10,7 @@ Use the `devcontainer-run` skill.
 
 ## Behavior
 
-- With no arguments, run both known devcontainers:
+- With no arguments, run both known devcontainers in parallel:
   1. Reserhub Revenue Full: `/Users/ignacio/repositories/reserhub-revenue-full`
   2. Adara CRM: `/Users/ignacio/repositories/adara-crm`
 - With a project argument, run only that project.
@@ -25,6 +25,8 @@ Run each selected project with:
 bunx @devcontainers/cli up --workspace-folder "<workspace-folder>"
 ```
 
+When both projects are selected, launch the two `bunx @devcontainers/cli up` commands concurrently as independent shell tasks.
+
 Then sync MCP auth:
 
 ```bash
@@ -32,6 +34,8 @@ opencode-sync-mcp-auth-devcontainer --root "<workspace-folder>/.devcontainer-per
 ```
 
 Finally, use the `openchamber-week-link` skill to output the one-week OpenChamber link for each selected project.
+
+When both projects are selected, sync MCP auth and generate OpenChamber links in parallel after each selected devcontainer is ready.
 
 ## Examples
 

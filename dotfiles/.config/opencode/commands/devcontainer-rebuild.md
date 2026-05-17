@@ -10,7 +10,7 @@ Use the `devcontainer-rebuild` skill.
 
 ## Behavior
 
-- With no arguments, rebuild both known devcontainers:
+- With no arguments, rebuild both known devcontainers in parallel:
   1. Reserhub Revenue Full: `/Users/ignacio/repositories/reserhub-revenue-full`
   2. Adara CRM: `/Users/ignacio/repositories/adara-crm`
 - With a project argument, rebuild only that project.
@@ -26,6 +26,8 @@ Run each selected project with:
 bunx @devcontainers/cli up --workspace-folder "<workspace-folder>" --remove-existing-container
 ```
 
+When both projects are selected, launch the two rebuild commands concurrently as independent shell tasks.
+
 For no-cache rebuilds, run:
 
 ```bash
@@ -39,6 +41,8 @@ opencode-sync-mcp-auth-devcontainer --root "<workspace-folder>/.devcontainer-per
 ```
 
 Finally, use the `openchamber-week-link` skill to output the one-week OpenChamber link for each selected project.
+
+When both projects are selected, sync MCP auth and generate OpenChamber links in parallel after each selected devcontainer is ready.
 
 ## Examples
 

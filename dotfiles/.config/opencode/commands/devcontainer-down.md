@@ -10,7 +10,7 @@ Use the `devcontainer-down` skill.
 
 ## Behavior
 
-- With no arguments, bring down both known devcontainers:
+- With no arguments, bring down both known devcontainers in parallel:
   1. Reserhub Revenue Full: `/Users/ignacio/repositories/reserhub-revenue-full`
   2. Adara CRM: `/Users/ignacio/repositories/adara-crm`
 - With a project argument, bring down only that project.
@@ -29,6 +29,8 @@ Then stop leftover devcontainer containers:
 ```bash
 docker ps -q --filter "name=<repo-name>_devcontainer" | xargs -r docker stop
 ```
+
+When both projects are selected, launch each project's compose down and leftover-container stop workflow concurrently as independent shell tasks.
 
 Do not run, rebuild, sync MCP auth, or output OpenChamber links from this command.
 
