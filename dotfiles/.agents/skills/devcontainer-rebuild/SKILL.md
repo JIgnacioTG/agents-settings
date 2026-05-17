@@ -14,7 +14,7 @@ Use this skill to recreate the known local devcontainers.
 | `reserhub`, `reserhub-revenue`, `reserhub-revenue-full` | Reserhub Revenue Full | `/Users/ignacio/repositories/reserhub-revenue-full` | `4098` |
 | `adara`, `adara-crm` | Adara CRM | `/Users/ignacio/repositories/adara-crm` | `4099` |
 
-If no project is specified, target both projects in this order:
+If no project is specified, target both projects in parallel:
 
 1. Reserhub Revenue Full
 2. Adara CRM
@@ -37,6 +37,8 @@ bunx @devcontainers/cli up --workspace-folder "<workspace-folder>" --remove-exis
 
 Forward any explicit extra arguments after the project key and no-cache flag to the devcontainer CLI.
 
+When both projects are selected, launch the two `bunx @devcontainers/cli up --remove-existing-container` commands concurrently as independent shell tasks. Do not rebuild Reserhub first and wait before starting Adara unless the user explicitly requests sequential execution or one project depends on the other.
+
 ## MCP auth sync
 
 After a successful rebuild, sync remote MCP auth into the devcontainer persistent root:
@@ -47,11 +49,13 @@ opencode-sync-mcp-auth-devcontainer --root "<workspace-folder>/.devcontainer-per
 
 If sync fails because no matching remote MCP auth exists, report it as a warning but do not treat the rebuild as failed.
 
+When both projects were rebuilt in parallel, sync MCP auth for each successful project in parallel after its corresponding rebuild command completes.
+
 ## OpenChamber link
 
 After all selected devcontainers finish rebuilding, use the `openchamber-week-link` skill for each selected project's OpenChamber port.
 
-When multiple projects are selected, output one link per project with the project label and port.
+When multiple projects are selected, generate and output one link per project with the project label and port. Generate the links in parallel when both OpenChamber instances are available.
 
 ## Final response
 

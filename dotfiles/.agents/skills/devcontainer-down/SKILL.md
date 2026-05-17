@@ -14,7 +14,7 @@ Use this skill to stop the known local devcontainers without rebuilding or start
 | `reserhub`, `reserhub-revenue`, `reserhub-revenue-full` | Reserhub Revenue Full | `/Users/ignacio/repositories/reserhub-revenue-full` |
 | `adara`, `adara-crm` | Adara CRM | `/Users/ignacio/repositories/adara-crm` |
 
-If no project is specified, target both projects in this order:
+If no project is specified, target both projects in parallel:
 
 1. Reserhub Revenue Full
 2. Adara CRM
@@ -40,6 +40,8 @@ docker ps -q --filter "name=<repo-name>_devcontainer" | xargs -r docker stop
 Use `<repo-name>` as the basename of the workspace folder, for example `reserhub-revenue-full` or `adara-crm`.
 
 The original zsh workflow suppresses failures and continues when nothing is running. Preserve that behavior: a missing running container is not an error.
+
+When both projects are selected, launch each project's compose down and leftover-container stop workflow concurrently as independent shell tasks. Do not bring down Reserhub first and wait before starting Adara unless the user explicitly requests sequential execution.
 
 ## Final response
 
