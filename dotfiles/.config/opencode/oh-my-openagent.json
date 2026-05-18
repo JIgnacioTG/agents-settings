@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json",
   "agents": {
     "sisyphus": {
-      "model": "fireworks-ai/accounts/fireworks/models/kimi-k2p6",
+      "model": "openai/gpt-5.5-fast",
       "variant": "high"
     },
     "hephaestus": {
@@ -36,7 +36,7 @@
       "variant": "xhigh"
     },
     "atlas": {
-      "model": "fireworks-ai/accounts/fireworks/models/kimi-k2p6",
+      "model": "openai/gpt-5.5-fast",
       "variant": "medium"
     },
     "sisyphus-junior": {
@@ -46,11 +46,6 @@
   },
   "experimental": {
     "preemptive_compaction": true
-  },
-  "background_task": {
-    "modelConcurrency": {
-      "fireworks-ai/accounts/fireworks/models/kimi-k2p6": 1
-    }
   },
   "categories": {
     "visual-engineering": {
