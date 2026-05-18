@@ -3,14 +3,7 @@
   "agents": {
     "sisyphus": {
       "model": "fireworks-ai/accounts/fireworks/models/kimi-k2p6",
-      "variant": "high",
-      "fallback_models": [
-        {
-          "model": "openai/gpt-5.5-fast",
-          "variant": "high"
-        },
-        "openai/gpt-5.4-mini-fast"
-      ]
+      "variant": "high"
     },
     "hephaestus": {
       "model": "openai/gpt-5.5-fast",
@@ -44,14 +37,7 @@
     },
     "atlas": {
       "model": "fireworks-ai/accounts/fireworks/models/kimi-k2p6",
-      "variant": "medium",
-      "fallback_models": [
-        {
-          "model": "openai/gpt-5.5-fast",
-          "variant": "medium"
-        },
-        "openai/gpt-5.4-mini-fast"
-      ]
+      "variant": "medium"
     },
     "sisyphus-junior": {
       "model": "openai/gpt-5.5-fast",
@@ -61,18 +47,10 @@
   "experimental": {
     "preemptive_compaction": true
   },
-  "model_fallback": true,
-  "runtime_fallback": {
-    "enabled": true,
-    "retry_on_errors": [
-      429,
-      503,
-      529
-    ],
-    "max_fallback_attempts": 2,
-    "cooldown_seconds": 300,
-    "timeout_seconds": 30,
-    "notify_on_fallback": true
+  "background_task": {
+    "modelConcurrency": {
+      "fireworks-ai/accounts/fireworks/models/kimi-k2p6": 1
+    }
   },
   "categories": {
     "visual-engineering": {
