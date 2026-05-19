@@ -96,7 +96,7 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Always include `./references/code-reviewer.md` for general bug-finding.
    - Include `./references/agents-md-auditor.md` only when an applicable `AGENTS.md` governs the changed scope or the request explicitly asks for compliance/rules review.
    - Activate specialist passes only from explicit user scope or clear diff/context signals, and let each reference profile own the detailed activation heuristics and review criteria.
-   - Always plan `./references/code-simplifier.md` as the required safe second-wave readability pass for changed code. Run it after first-wave validation when no validated `critical` blockers remain, unless the user explicitly excludes suggestions or simplification.
+   - Always include `./references/code-simplifier.md` as a first-wave readability pass for every reviewable changed-code surface. It is not conditional on blocker status, requested scope, or whether other specialists activate.
    - Dispatch review passes through Oh My OpenAgent categories. Pass the mapped value as `category`, not `subagent_type`, and never provide both in the same delegation call. Copy the named reference profile into the prompt so the category-routed Sisyphus-Junior still performs the specialist role:
      - `triage-agent` -> `quick`
      - `code-reviewer` -> `unspecified-high`
@@ -134,24 +134,21 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - When a pass emits ratings or another pass-specific schema instead of final severities, derive the nearest final level conservatively from the validator-supported evidence without re-implementing that profile's detailed rubric here.
 
 9. Dispatch passes in waves.
-   - First wave: run `code-reviewer`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
+   - First wave: run `code-reviewer`, `code-simplifier`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
    - Keep each pass scoped to the requested diff or changed-code surface only.
    - Preserve raw outputs, cited evidence, and pass attribution in the raw-output store or task transcripts. Keep the principal-agent working set to the normalized ledger plus concise evidence pointers.
-   - Do not run `code-simplifier` in the first wave.
+   - Treat simplifier output as `suggestion` material only; it must not block or replace correctness, security, or stability findings.
 
 10. Validate candidate findings.
-   - Send non-empty first-wave findings to `./references/validator-agent.md`.
+   - Send non-empty first-wave findings and simplifier suggestions to `./references/validator-agent.md`.
    - The validator may validate, adjust severity with evidence, or dismiss existing findings only; it must not create new findings.
    - Drop dismissed items and all findings below the validator confidence threshold defined in the validator profile.
    - Preserve source-pass attribution for every surviving item.
 
-11. Run the simplification pass as the required second wave when safe.
-     - Load `./references/code-simplifier.md` and dispatch `code-simplifier` after first-wave validation for every `pr-review`, `diff-review`, `request-review`, and `targeted-review` with changed code unless validated `critical` blockers remain.
-     - Also dispatch it whenever the user explicitly asks for simplification, maintainability polish, cleanup, refactoring suggestions, readability, or broad improvement suggestions.
-     - If validated `critical` blockers remain, do not dispatch `code-simplifier`; record `code-simplifier: skipped-critical-blockers` in the pass ledger and explain that simplification is deferred until correctness/security blockers are addressed.
-     - If the user explicitly asks for findings only, excludes suggestions, or requests a narrow scope such as `security findings only`, do not dispatch `code-simplifier`; record `code-simplifier: skipped-user-scope`.
-     - Treat simplifier output as `suggestion` material only, then validate it before aggregation.
+11. Preserve the simplification pass result.
+     - `code-simplifier` is expected to run in the first wave for every reviewable changed-code surface.
      - If the simplifier returns no findings, preserve the empty pass result in the ledger so the final report proves the agent was not skipped.
+     - If the simplifier cannot run because tooling is unavailable, record `code-simplifier: not-run:<reason>` in the pass ledger.
 
 12. Aggregate validated results.
      - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
@@ -249,8 +246,8 @@ Plan rules:
 ## Fallback Rules
 
 - If triage says not to proceed, stop immediately only when there is no reviewable diff or changed-code surface, the explicit target cannot be resolved, or the request is not actually a review request.
-- If no specialist pass activates, run `code-reviewer`, plus `agents-md-auditor` when compliance context applies. Then run `code-simplifier` as the second wave when no validated `critical` blockers remain and the user did not exclude suggestions.
-- If specialist passes do activate, still run `code-simplifier` as the second wave under the same safe conditions; it is not only a fallback pass.
+- If no conditional specialist pass activates, still run both always-on first-wave passes: `code-reviewer` and `code-simplifier`, plus `agents-md-auditor` when compliance context applies.
+- If conditional specialist passes do activate, still run `code-simplifier` in the first wave; it is never only a fallback pass.
 - If the request names explicit passes, honor that narrower scope unless triage blocks review.
 - If the request says `all`, run all conditionally applicable passes, not every reference file blindly.
 - If authenticated `gh` is unavailable, prefer MCP-provided PR metadata or payloads before local diff fallback.
@@ -261,7 +258,7 @@ Plan rules:
 - If a pass returns no findings, continue with the remaining stages.
 - If validation dismisses every candidate finding, skip dismissed items and return a clean review summary.
 - If multiple passes report the same issue with different labels, preserve original labels for attribution and let validation plus aggregation determine the final merged level.
-- If simplification should run but blocker-level findings remain or user scope excludes suggestions, skip `code-simplifier` and report why in the pass ledger.
+- If `code-simplifier` cannot run, report the concrete `not-run` reason in the pass ledger.
 
 ## Guardrails
 

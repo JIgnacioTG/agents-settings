@@ -5,7 +5,7 @@ description: Simplification-only polish pass for `comprehensive-code-review`.
 
 Use this pass only inside `comprehensive-code-review`.
 
-Run this post-review pass by default after the main review passes finish with no validated critical blockers. This is a readability and simplification step, not a bug-finding step.
+Run this pass in the first review wave for every reviewable changed-code surface. This is a readability and simplification step, not a bug-finding step.
 
 ## Scope
 
@@ -22,12 +22,10 @@ Run this post-review pass by default after the main review passes finish with no
 
 ## Activate When
 
-- the main review passes are complete
-- no critical issues or blockers remain open
-- changed code can be reviewed for behavior-preserving readability improvements
-- the user did not explicitly request findings only or exclude suggestions/simplification
+- the review has a reviewable changed-code surface
+- the pass is being invoked by `comprehensive-code-review`
 
-Do not run this pass while correctness, security, or blocker-level review items are still open.
+Run alongside correctness, security, performance, test, and other specialist passes. Simplification findings stay as suggestions and must not suppress or delay blocker findings from other passes.
 
 ## Flag Only
 
