@@ -38,8 +38,8 @@
     },
     {
       "id": 6,
-      "prompt": "Please review my PR https://github.com/acme/platform/pull/944. I own this branch, so after the validated findings are ready, also create the markdown plan I can use to fix them. Include unresolved review comments if available and do not skip simplification polish if there are no critical blockers.",
-      "expected_output": "A PR review in owner-remediation-context that runs required agent passes including code-simplifier when safe, reports validated findings, and writes a `docs/plans/{YYYY-mm-dd}-{plan-name}.md` remediation-plan artifact with finding IDs, fix groups, comment actions, and verification.",
+      "prompt": "Please review my PR https://github.com/acme/platform/pull/944. I own this branch, so after the validated findings are ready, also create the markdown plan I can use to fix them. Include unresolved review comments if available, and make sure every unresolved PR comment is attacked in the plan: either solve it with an implementation action and later resolve the thread, or draft the reply needed and mark when it should be resolved. Do not skip simplification polish if there are no critical blockers.",
+      "expected_output": "A PR review in owner-remediation-context that runs required agent passes including code-simplifier when safe, reports validated findings, and writes a `docs/plans/{YYYY-mm-dd}-{plan-name}.md` remediation-plan artifact with finding IDs, fix groups, comment actions, verification, and a PR comment plan covering every fetched unresolved comment/thread with fix-and-resolve, reply-and-resolve, or blocked-needs-owner-decision actions.",
       "files": [],
       "expectations": []
     },

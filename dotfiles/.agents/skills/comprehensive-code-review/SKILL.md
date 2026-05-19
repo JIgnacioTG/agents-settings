@@ -123,6 +123,7 @@ Every review wave must be recoverable without launching duplicate agents.
    - Whenever a related PR exists, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
    - Preserve CI check names, states or buckets, URLs, workflow names, events, descriptions, and timestamps so a downstream pass can report concrete PR-level issues instead of vague "CI failed" summaries.
    - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
+   - In owner PR flows, treat every fetched unresolved PR comment/thread as a tracked remediation obligation, even when it is duplicate, obsolete, already addressed, unclear, or ultimately not a validated code finding. The plan must account for each comment with either a fix path or an explicit reply-and-resolve path.
    - Gather applicable `AGENTS.md` files for the changed paths when compliance context may matter.
    - Do not run a summarizer or principal-agent compaction pass before specialist dispatch. If the diff is too large, split by changed file groups and keep a per-group ledger instead of replacing source evidence with a summary.
    - Do not re-implement pass heuristics here; gather only enough to activate and feed the right profiles.
@@ -133,6 +134,7 @@ Every review wave must be recoverable without launching duplicate agents.
    - Detect `publish-review-comments` when the user explicitly asks to leave, post, submit, or publish findings on the PR.
    - In `external-review-context`, prefer preparing PR review comments over creating a remediation plan.
    - In `owner-remediation-context`, create a markdown remediation-plan artifact after validated findings are aggregated when the mode is `diff-review`, `request-review`, or `pr-review`.
+   - In owner `pr-review` mode with fetched unresolved comments, make comment closure a first-class outcome of the remediation plan: every tracked comment must be solved by implementation and later resolved, or answered with a concrete reply and later resolved when it is duplicate, obsolete, non-actionable, already addressed, or blocked by a decision outside the diff.
 
 6. Build the pass plan.
    - Always include `./references/code-reviewer.md` for general bug-finding.
@@ -206,6 +208,7 @@ Every review wave must be recoverable without launching duplicate agents.
      `not-run:<reason>`; aggregation must not compensate for a missing pass by
      launching a new review pass.
    - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
+   - Carry forward tracked owner-PR comments separately from validated findings so comments that do not become findings still reach the remediation plan.
    - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
    - Aggregation is reporting-only; it must not become a fresh review pass.
 
@@ -215,6 +218,9 @@ Every review wave must be recoverable without launching duplicate agents.
      - Name the file `{YYYY-mm-dd}-{plan-name}.md`, using the current local date and a short kebab-case plan name derived from the review target or dominant fix theme, for example `2026-04-26-auth-review-remediation.md`.
      - If the target filename already exists, append a numeric suffix such as `{YYYY-mm-dd}-{plan-name}-2.md` instead of overwriting it.
      - Base the plan only on validated findings and tracked PR comments; do not invent fixes for dismissed findings.
+     - For owner PR reviews, include every fetched unresolved PR comment/thread in the plan. A comment may share a validated finding, create a comment-only action, or be classified as duplicate/obsolete/not-actionable/already-addressed, but it must not disappear from the plan.
+     - Assign stable comment action IDs such as `PC-1`, `PC-2` for tracked PR comments that do not map cleanly to a validated finding. Use those IDs in the comment plan and verification matrix so implementation can close them deliberately.
+     - Each tracked PR comment must have one of these comment actions: `fix-and-resolve`, `reply-and-resolve`, or `blocked-needs-owner-decision`. Prefer `fix-and-resolve` when the comment identifies a real defect or requested change in scope; use `reply-and-resolve` for duplicate, obsolete, already-addressed, not-actionable, or explanation-only comments; use `blocked-needs-owner-decision` only when resolving would require a decision unavailable from the review context.
      - Use the exact plan template in `Owner Remediation Plan Artifact` below.
 
 14. Produce the final response.
@@ -260,16 +266,16 @@ When owner remediation planning is required, create a markdown file with this ex
 - Risks and rollback: <main risk and safe fallback>
 
 ## PR comment plan
-| Comment/thread | Related finding | Action | Reply summary | Resolve when |
-| --- | --- | --- | --- | --- |
+| Comment/thread | Action ID | Related finding | Action | Reply summary | Resolve when |
+| --- | --- | --- | --- | --- | --- |
 
 ## Verification matrix
-| Finding ID | Required proof | Command or check |
+| Finding/action ID | Required proof | Command or check |
 | --- | --- | --- |
 
 ## Final options
-1. Proceed to fix the findings using this plan.
-2. Only leave or prepare comments for the findings in the PR.
+1. Proceed to fix the findings and close the tracked PR comments using this plan.
+2. Only leave or prepare comments for the findings and tracked PR comments in the PR.
 
 ## Open questions or blockers
 - <only items that cannot be resolved from available context>
@@ -281,7 +287,10 @@ Plan rules:
 - Assign stable finding IDs such as `CR-1`, `CR-2`, or `CRITICAL-1` and reuse them in the final response.
 - Preserve severity, validator confidence, source-pass attribution, file evidence, and PR thread/comment identifiers.
 - Group findings by shared root cause and implementation dependency, not by the agent that found them.
-- Include reply-only actions for duplicate, not-actionable, or already-addressed PR comments so no fetched comment disappears.
+- Include every fetched unresolved PR comment/thread in `## PR comment plan`; no comment may be dropped because it is duplicate, obsolete, already addressed, not actionable, or not tied to a validated finding.
+- Use `fix-and-resolve` when implementation will satisfy the comment, and state the proof required before resolving the thread.
+- Use `reply-and-resolve` when the correct owner action is a reply rather than code, and draft the reply summary specific enough that it can be posted later before marking the thread resolved.
+- Use `blocked-needs-owner-decision` only when neither a fix nor a truthful reply can be chosen from available context, and list the blocker under `## Open questions or blockers`.
 - Define verification before implementation for every finding group.
 - Stop after writing the plan unless the user explicitly asked to implement fixes too.
 
@@ -292,6 +301,7 @@ Plan rules:
 - Use line-level review comments when the finding maps to a specific changed line or multi-line range.
 - Use replies when the finding answers an existing review comment or thread instead of opening a new discussion.
 - Use thread resolution only after the workflow has evidence that the comment is addressed, obsolete, duplicate, or intentionally not actionable.
+- In owner remediation execution, do not finish with unresolved tracked comments: after code fixes or reply-only decisions are verified, post the needed replies and resolve the corresponding threads when the workflow has explicit approval and the GitHub API capability is available.
 - Keep tool expectations accurate: `gh pr comment` is PR-level only; inline/file review comments, review-thread replies, and resolve/unresolve operations require the GitHub review comment REST API or GraphQL through `gh api`/`gh api graphql`.
 - Posting remains approval-gated even when the user requested prepared comments; do not publish comments unless the active workflow explicitly approves posting.
 
