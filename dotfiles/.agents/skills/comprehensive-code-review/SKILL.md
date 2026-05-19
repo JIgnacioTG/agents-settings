@@ -45,9 +45,51 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 - Dispatch every activated OpenCode pass through `task(...)` with the mapped `category`, `load_skills=[]`, explicit `run_in_background` behavior, and the relevant reference profile content copied into that pass prompt. Do not use `subagent_type` for review passes because direct OpenCode subagents bypass Oh My OpenAgent category/model routing.
 - Do not merge multiple role profiles into one generic reviewer. Separate agents preserve independent failure modes and reduce skipped checks. A broad comprehensive review that only ran `code-reviewer` is incomplete unless triage explicitly narrowed the request to general bug review only.
 - Preserve each pass result, including empty results, outside the principal chat context when possible, so the final report can show which mandatory passes ran and why any conditional pass did not run without forcing every raw transcript through the principal agent.
-- Keep the principal context compact by maintaining a normalized review ledger: pass name, status, activation reason, skip/not-run reason, finding IDs, severity, confidence, evidence pointers, and PR comment/thread IDs. Store raw pass outputs and bulky PR context in files or task transcripts; feed later stages the normalized ledger plus only the evidence slices they need.
+- Keep the principal context compact by maintaining a durable normalized review ledger
+  immediately after every dispatch: pass name, category, `background_task_id`,
+  `session_id`, status, activation reason, skip/not-run reason, finding IDs,
+  severity, confidence, evidence pointers, and PR comment/thread IDs. Store raw
+  pass outputs and bulky PR context in files or task transcripts; feed later
+  stages the normalized ledger plus only the evidence slices they need.
+- Treat the ledger's `background_task_id` and `session_id` as the only source of
+  truth for launched passes. Never rely on memory of task handles, prose
+  summaries, or later session search to decide whether a pass already ran.
 - Do not pre-compact review evidence before specialist passes. Each activated pass should receive the raw review surface needed for its role, such as the relevant diff, changed files, PR metadata, failing CI data, unresolved comments, and applicable `AGENTS.md` rules, with concise scope boundaries rather than lossy principal-agent summaries.
 - If a required pass cannot run because tooling is unavailable, record it as `not-run` with the concrete reason instead of silently skipping it.
+
+## Durable Pass Ledger and No-Rerun Recovery
+
+Every review wave must be recoverable without launching duplicate agents.
+
+- Immediately after each `task(..., run_in_background=true)` dispatch, copy both
+  identifiers from the tool result into the ledger: `background_task_id` and
+  `session_id`. Do this before dispatching dependent validation, simplification,
+  or aggregation work.
+- Before collecting a wave, read the ledger and call `background_output` exactly
+  once per recorded `background_task_id` after completion notification. Attach
+  the returned raw output or empty-result marker to that ledger row.
+- If `background_output` cannot return a result because the background handle is
+  missing, expired, or unavailable, recover the already-launched pass with
+  `session_read(session_id=<ledger session_id>, include_transcript=false,
+  limit=<small-window>)` and extract the final pass output from the session
+  messages. Record `recovered-from-session:<session_id>` in the ledger.
+- Use `include_transcript=true` only as a bounded last resort when normal session
+  messages do not contain the final pass output. Keep the `limit` as small as the
+  tool allows for the missing output; never load a full long review transcript
+  just to recover a pass result.
+- If both background output and session recovery fail, mark that pass
+  `not-run:lost-output:<reason>` and report the loss in the pass ledger. Do not
+  silently continue as if it ran.
+- Never rerun a pass solely to recover output, refresh a handle, recreate a lost
+  `background_task_id`, or fill a missing transcript. Rerun only when the review
+  surface changed or the previous pass explicitly failed before producing any
+  usable result; record the original failed row and the new row separately.
+- Validation, simplification, and aggregation must consume the ledger's collected
+  or session-recovered first-wave results. They must not trigger first-wave
+  agents again.
+- Do not write fallback language such as "task handles expired, so I am
+  rerunning". Expired handles require session recovery or an explicit
+  `not-run:lost-output` ledger entry, never duplicate execution.
 
 
 ## Orchestration Workflow
@@ -136,26 +178,36 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 9. Dispatch passes in waves.
    - First wave: run `code-reviewer`, `code-simplifier`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
    - Keep each pass scoped to the requested diff or changed-code surface only.
+   - For each dispatched pass, immediately record the returned
+     `background_task_id` and `session_id` in the durable pass ledger before
+     moving to the next stage.
    - Preserve raw outputs, cited evidence, and pass attribution in the raw-output store or task transcripts. Keep the principal-agent working set to the normalized ledger plus concise evidence pointers.
    - Treat simplifier output as `suggestion` material only; it must not block or replace correctness, security, or stability findings.
 
 10. Validate candidate findings.
+   - Collect first-wave results from the durable pass ledger. If a background
+     handle is unavailable, recover from the recorded `session_id`; do not rerun
+     the first-wave pass.
    - Send non-empty first-wave findings and simplifier suggestions to `./references/validator-agent.md`.
    - The validator may validate, adjust severity with evidence, or dismiss existing findings only; it must not create new findings.
    - Drop dismissed items and all findings below the validator confidence threshold defined in the validator profile.
    - Preserve source-pass attribution for every surviving item.
 
 11. Preserve the simplification pass result.
-     - `code-simplifier` is expected to run in the first wave for every reviewable changed-code surface.
-     - If the simplifier returns no findings, preserve the empty pass result in the ledger so the final report proves the agent was not skipped.
-     - If the simplifier cannot run because tooling is unavailable, record `code-simplifier: not-run:<reason>` in the pass ledger.
+   - `code-simplifier` is expected to run in the first wave for every reviewable changed-code surface.
+   - If the simplifier returns no findings, preserve the empty pass result in the ledger so the final report proves the agent was not skipped.
+   - If the simplifier cannot run because tooling is unavailable, record `code-simplifier: not-run:<reason>` in the pass ledger.
 
 12. Aggregate validated results.
-     - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
-     - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
-     - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
-     - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
-     - Aggregation is reporting-only; it must not become a fresh review pass.
+   - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
+   - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
+   - Include ledger recovery status for every pass, including `ran`,
+     `recovered-from-session:<session_id>`, `skipped:<reason>`, and
+     `not-run:<reason>`; aggregation must not compensate for a missing pass by
+     launching a new review pass.
+   - Preserve any PR comment/thread source and any suggested publication target for each finding: line-level when the issue maps to a changed line, file-level when the issue maps to a file but no stable line, and PR-level when the issue is cross-cutting or process-wide.
+   - Preserve CI-check findings as PR-level findings unless the failing check output clearly identifies a changed file and stable line.
+   - Aggregation is reporting-only; it must not become a fresh review pass.
 
 13. Create an owner remediation-plan artifact when applicable.
      - Create this markdown file only for `owner-remediation-context` in `diff-review`, `request-review`, or `pr-review` mode. Do not create it for `external-review-context` unless the user explicitly says they own the fix or asks for a fix plan.
