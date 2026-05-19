@@ -1,20 +1,20 @@
 ---
 description: Deterministic comprehensive code review with specialized subagents
-agent: comprehensive-code-reviewer
 ---
 
 # Comprehensive Code Review
 
-Run the comprehensive review workflow through the dedicated `comprehensive-code-reviewer` orchestrator subagent. This command is the preferred OpenCode entry point for the `comprehensive-code-review` skill because it prevents broad single-agent reviews.
+Use the `comprehensive-code-review` skill as the canonical workflow, but execute each review pass through Oh My OpenAgent category routing so every pass receives the category/model fit defined in `oh-my-openagent.json`.
 
 **Arguments:** "$ARGUMENTS"
 
 ## Non-negotiable dispatch contract
 
-- The command must run with the `comprehensive-code-reviewer` orchestrator agent.
-- The orchestrator must use `task(...)` for every agent pass.
-- The orchestrator must include `load_skills=[]` and explicit `run_in_background` in every `task(...)` call.
-- The orchestrator must use `subagent_type` for concrete review agents. Do not use a generic category agent for a pass that has a named subagent.
+- Do not set or switch to a custom OpenCode review agent for this command.
+- Use `task(...)` for every review pass.
+- Every `task(...)` call must include `category`, `load_skills=[]`, and explicit `run_in_background`.
+- Do not use `subagent_type` for review passes; direct subagents bypass OMO category/model routing.
+- Each pass prompt must include the pass name and the relevant `comprehensive-code-review/references/*.md` profile content before dispatch.
 - Never merge multiple pass profiles into one prompt or one agent.
 - Preserve a pass ledger with `ran`, `skipped:<reason>`, or `not-run:<reason>` for every mandatory or activated pass.
 - A broad comprehensive review that only runs `code-reviewer` is incomplete unless triage explicitly narrows the request to general bug review only.
@@ -40,9 +40,9 @@ Run these before review passes:
 Use this shape:
 
 ```text
-task(subagent_type="pr-triage", load_skills=[], run_in_background=false, prompt="...")
-task(subagent_type="config-finder", load_skills=[], run_in_background=false, prompt="...")
-task(subagent_type="pr-summarizer", load_skills=[], run_in_background=false, prompt="...")
+task(category="quick", load_skills=[], run_in_background=false, prompt="PASS: triage-agent\nPROFILE: <paste triage-agent.md>\n...")
+task(category="quick", load_skills=[], run_in_background=false, prompt="PASS: config-finder\nPROFILE: <AGENTS.md lookup instructions>\n...")
+task(category="quick", load_skills=[], run_in_background=false, prompt="PASS: pr-summarizer\nPROFILE: <summary instructions>\n...")
 ```
 
 If `pr-triage` returns no reviewable surface, stop with the triage reason.
@@ -51,19 +51,19 @@ If `pr-triage` returns no reviewable surface, stop with the triage reason.
 
 Launch every activated first-wave pass in parallel with `run_in_background=true`:
 
-| Pass | Subagent | Activation |
+| Pass | Category | Activation |
 | --- | --- | --- |
-| General bugs | `code-reviewer` | Always |
-| Rules compliance | `compliance-auditor` | Relevant `AGENTS.md` exists or user asks for compliance |
-| Tests | `pr-test-analyzer` | Test files changed, behavior changed without tests, or user asks for test review |
-| Comments | `comment-analyzer` | Comments/docs changed or user asks for comment review |
-| Silent failures | `silent-failure-hunter` | Error handling, fallback, retry, logging, async failure, optional/null handling, external I/O, or user asks for errors |
-| Types | `type-design-analyzer` | Types/interfaces/schemas/models/API contracts changed or user asks for type review |
+| General bugs | `unspecified-high` | Always |
+| Rules compliance | `unspecified-high` | Relevant `AGENTS.md` exists or user asks for compliance |
+| Tests | `unspecified-high` | Test files changed, behavior changed without tests, or user asks for test review |
+| Comments | `writing` | Comments/docs changed or user asks for comment review |
+| Silent failures | `unspecified-high` | Error handling, fallback, retry, logging, async failure, optional/null handling, external I/O, or user asks for errors |
+| Types | `deep` | Types/interfaces/schemas/models/API contracts changed or user asks for type review |
 
 Use this shape for each activated pass:
 
 ```text
-task(subagent_type="code-reviewer", load_skills=[], run_in_background=true, prompt="...")
+task(category="unspecified-high", load_skills=[], run_in_background=true, prompt="PASS: code-reviewer\nPROFILE: <paste code-reviewer.md>\n...")
 ```
 
 Each prompt must include the review surface, PR summary, applicable `AGENTS.md` files, explicit pass scope, severity/output expectations, and instructions to review only changed code unless context is required to validate a changed-code issue.

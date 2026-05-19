@@ -9,7 +9,7 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 
 ## OpenCode Entry Point
 
-When this skill is used from OpenCode, prefer the `/comprehensive-code-review` command. The command is the deterministic orchestration surface for OpenCode because it runs the dedicated `comprehensive-code-reviewer` orchestrator subagent, limits Task access to the intended review subagents, and requires a pass ledger. If a user invokes this skill directly instead of the slash command, follow the same direct-subagent dispatch contract below rather than running a single broad review.
+When this skill is used from OpenCode, prefer the `/comprehensive-code-review` command. The command is the deterministic orchestration surface for OpenCode because it keeps Oh My OpenAgent category routing in control of model selection while requiring explicit pass prompts and a pass ledger. If a user invokes this skill directly instead of the slash command, follow the same category dispatch contract below rather than running a single broad review.
 
 ## Reference Profiles
 
@@ -40,7 +40,7 @@ When this skill is used from OpenCode, prefer the `/comprehensive-code-review` c
 This skill is an orchestration process, not a single-pass checklist. Every activated role must run as a delegated agent pass with its reference profile loaded before dispatch.
 
 - Load the relevant reference file immediately before preparing that pass prompt. Do not rely on memory of the profile.
-- Dispatch every activated OpenCode pass through `task(...)` with the pass's concrete `subagent_type`, `load_skills=[]`, and explicit `run_in_background` behavior. Do not use a category-routed generic agent when a concrete review subagent exists.
+- Dispatch every activated OpenCode pass through `task(...)` with the mapped `category`, `load_skills=[]`, explicit `run_in_background` behavior, and the relevant reference profile content copied into that pass prompt. Do not use `subagent_type` for review passes because direct OpenCode subagents bypass Oh My OpenAgent category/model routing.
 - Do not merge multiple role profiles into one generic reviewer. Separate agents preserve independent failure modes and reduce skipped checks. A broad comprehensive review that only ran `code-reviewer` is incomplete unless triage explicitly narrowed the request to general bug review only.
 - Preserve each pass result, including empty results, so the final report can show which mandatory passes ran and why any conditional pass did not run.
 - If a required pass cannot run because tooling is unavailable, record it as `not-run` with the concrete reason instead of silently skipping it.
@@ -92,18 +92,24 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Include `./references/agents-md-auditor.md` only when an applicable `AGENTS.md` governs the changed scope or the request explicitly asks for compliance/rules review.
    - Activate specialist passes only from explicit user scope or clear diff/context signals, and let each reference profile own the detailed activation heuristics and review criteria.
    - Keep `./references/code-simplifier.md` out of the first wave; it is a mandatory post-validation polish wave for broad reviews once blocker status is known.
-   - Dispatch review passes through concrete OpenCode subagents when available. Use `subagent_type`, not `category`, and never provide both in the same delegation call:
-     - `triage-agent` -> `pr-triage`
-     - `code-reviewer` -> `code-reviewer`
-     - `agents-md-auditor` -> `compliance-auditor`
-     - `validator-agent` -> `issue-validator`
-     - `comment-analyzer` -> `comment-analyzer`
-     - `pr-test-analyzer` -> `pr-test-analyzer`
-     - `silent-failure-hunter` -> `silent-failure-hunter`
-     - `type-design-analyzer` -> `type-design-analyzer`
-     - `code-simplifier` -> `code-simplifier`
-     - `aggregator-agent` -> aggregate in the parent after validation unless a dedicated aggregator subagent exists.
-   - For a specialist profile without a concrete OpenCode subagent, either dispatch a category-routed specialist with that reference profile copied into the prompt or mark the pass `not-run:no-concrete-subagent` in the ledger. Never silently fold it into `code-reviewer`.
+   - Dispatch review passes through Oh My OpenAgent categories. Pass the mapped value as `category`, not `subagent_type`, and never provide both in the same delegation call. Copy the named reference profile into the prompt so the category-routed Sisyphus-Junior still performs the specialist role:
+     - `triage-agent` -> `quick`
+     - `code-reviewer` -> `unspecified-high`
+     - `agents-md-auditor` -> `unspecified-high`
+     - `ci-check-analyzer` -> `quick`
+     - `validator-agent` -> `unspecified-high`
+     - `comment-analyzer` -> `writing`
+     - `pr-test-analyzer` -> `unspecified-high`
+     - `silent-failure-hunter` -> `unspecified-high`
+     - `type-design-analyzer` -> `deep`
+     - `history-context-analyzer` -> `deep`
+     - `security-agent` -> `unspecified-high`
+     - `performance-agent` -> `deep`
+     - `ui-ux-agent` -> `visual-engineering`
+     - `architecture-agent` -> `ultrabrain`
+     - `code-simplifier` -> `deep`
+     - `aggregator-agent` -> `unspecified-high`
+   - Never silently fold a specialist profile into `code-reviewer`; if a pass cannot run, mark it `not-run:<reason>` in the ledger.
 
 7. Apply conditional activation at a wrapper level.
    - Use the request plus diff/context shape only to decide which specialist families should be considered.
