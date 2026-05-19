@@ -9,7 +9,9 @@ Run an explicit orchestration wrapper for staged, role-based review. This file d
 
 ## OpenCode Entry Point
 
-When this skill is used from OpenCode, prefer the `/comprehensive-code-review` command. The command is the deterministic orchestration surface for OpenCode because it keeps Oh My OpenAgent category routing in control of model selection while requiring explicit pass prompts and a pass ledger. If a user invokes this skill directly instead of the slash command, follow the same category dispatch contract below rather than running a single broad review.
+This skill is the canonical workflow. The `/comprehensive-code-review` command is only a thin launcher that passes the user's request into this skill. Keep triage, context rules, pass activation, validation, aggregation, remediation planning, and final reporting here only.
+
+If command text and this skill ever conflict, follow this skill. The command must not maintain a second pass table, setup workflow, validation flow, or output contract because duplicated orchestration drifts and causes specialists to be skipped.
 
 ## Reference Profiles
 
@@ -42,7 +44,9 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 - Load the relevant reference file immediately before preparing that pass prompt. Do not rely on memory of the profile.
 - Dispatch every activated OpenCode pass through `task(...)` with the mapped `category`, `load_skills=[]`, explicit `run_in_background` behavior, and the relevant reference profile content copied into that pass prompt. Do not use `subagent_type` for review passes because direct OpenCode subagents bypass Oh My OpenAgent category/model routing.
 - Do not merge multiple role profiles into one generic reviewer. Separate agents preserve independent failure modes and reduce skipped checks. A broad comprehensive review that only ran `code-reviewer` is incomplete unless triage explicitly narrowed the request to general bug review only.
-- Preserve each pass result, including empty results, so the final report can show which mandatory passes ran and why any conditional pass did not run.
+- Preserve each pass result, including empty results, outside the principal chat context when possible, so the final report can show which mandatory passes ran and why any conditional pass did not run without forcing every raw transcript through the principal agent.
+- Keep the principal context compact by maintaining a normalized review ledger: pass name, status, activation reason, skip/not-run reason, finding IDs, severity, confidence, evidence pointers, and PR comment/thread IDs. Store raw pass outputs and bulky PR context in files or task transcripts; feed later stages the normalized ledger plus only the evidence slices they need.
+- Do not pre-compact review evidence before specialist passes. Each activated pass should receive the raw review surface needed for its role, such as the relevant diff, changed files, PR metadata, failing CI data, unresolved comments, and applicable `AGENTS.md` rules, with concise scope boundaries rather than lossy principal-agent summaries.
 - If a required pass cannot run because tooling is unavailable, record it as `not-run` with the concrete reason instead of silently skipping it.
 
 
@@ -71,13 +75,14 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Triage may return `proceed: false` only when there is no reviewable diff or changed-code surface, the explicit target cannot be resolved, or the request is not actually a review request.
    - If triage returns `proceed: false`, stop immediately and return only the short reason.
 
-4. Gather only the minimum orchestration context.
-   - Collect the review target, changed files, diff summary, and any explicitly requested review angles.
+4. Gather and preserve bounded orchestration context.
+   - Collect the review target, changed files, raw diff or changed-code surface, and any explicitly requested review angles.
    - Whenever a related PR exists in any status, gather PR metadata and unresolved review discussion context if available from the chosen provider. Prefer GraphQL `reviewThreads`; if unavailable, accept REST review comments with unknown resolution state and preserve that limitation.
    - Whenever a related PR exists, gather failing or otherwise blocking CI/check status context from the chosen provider when available. Prefer `./scripts/github-integration.sh --checks` when using this skill from its directory; otherwise use equivalent `gh pr checks --json` or PR `statusCheckRollup` data.
    - Preserve CI check names, states or buckets, URLs, workflow names, events, descriptions, and timestamps so a downstream pass can report concrete PR-level issues instead of vague "CI failed" summaries.
    - Preserve unresolved thread/comment identifiers, URLs, authors, paths, lines, and outdated/resolved state so downstream remediation can reply to or resolve the exact comment rather than losing thread traceability.
    - Gather applicable `AGENTS.md` files for the changed paths when compliance context may matter.
+   - Do not run a summarizer or principal-agent compaction pass before specialist dispatch. If the diff is too large, split by changed file groups and keep a per-group ledger instead of replacing source evidence with a summary.
    - Do not re-implement pass heuristics here; gather only enough to activate and feed the right profiles.
 
 5. Determine review ownership and publication intent.
@@ -91,7 +96,7 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Always include `./references/code-reviewer.md` for general bug-finding.
    - Include `./references/agents-md-auditor.md` only when an applicable `AGENTS.md` governs the changed scope or the request explicitly asks for compliance/rules review.
    - Activate specialist passes only from explicit user scope or clear diff/context signals, and let each reference profile own the detailed activation heuristics and review criteria.
-   - Keep `./references/code-simplifier.md` out of the first wave; it is a mandatory post-validation polish wave for broad reviews once blocker status is known.
+   - Always plan `./references/code-simplifier.md` as the required safe second-wave readability pass for changed code. Run it after first-wave validation when no validated `critical` blockers remain, unless the user explicitly excludes suggestions or simplification.
    - Dispatch review passes through Oh My OpenAgent categories. Pass the mapped value as `category`, not `subagent_type`, and never provide both in the same delegation call. Copy the named reference profile into the prompt so the category-routed Sisyphus-Junior still performs the specialist role:
      - `triage-agent` -> `quick`
      - `code-reviewer` -> `unspecified-high`
@@ -131,7 +136,7 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 9. Dispatch passes in waves.
    - First wave: run `code-reviewer`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
    - Keep each pass scoped to the requested diff or changed-code surface only.
-   - Preserve raw outputs, cited evidence, and pass attribution exactly as returned.
+   - Preserve raw outputs, cited evidence, and pass attribution in the raw-output store or task transcripts. Keep the principal-agent working set to the normalized ledger plus concise evidence pointers.
    - Do not run `code-simplifier` in the first wave.
 
 10. Validate candidate findings.
@@ -140,12 +145,13 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
    - Drop dismissed items and all findings below the validator confidence threshold defined in the validator profile.
    - Preserve source-pass attribution for every surviving item.
 
-11. Run the simplification pass as a required second wave when safe.
-     - Load `./references/code-simplifier.md` and dispatch `code-simplifier` after first-wave validation for every broad `pr-review`, `diff-review`, or `request-review` unless validated `critical` blockers remain.
-     - Also dispatch it for any targeted review that explicitly asks for simplification, maintainability polish, cleanup, refactoring suggestions, or broad improvement suggestions.
+11. Run the simplification pass as the required second wave when safe.
+     - Load `./references/code-simplifier.md` and dispatch `code-simplifier` after first-wave validation for every `pr-review`, `diff-review`, `request-review`, and `targeted-review` with changed code unless validated `critical` blockers remain.
+     - Also dispatch it whenever the user explicitly asks for simplification, maintainability polish, cleanup, refactoring suggestions, readability, or broad improvement suggestions.
      - If validated `critical` blockers remain, do not dispatch `code-simplifier`; record `code-simplifier: skipped-critical-blockers` in the pass ledger and explain that simplification is deferred until correctness/security blockers are addressed.
+     - If the user explicitly asks for findings only, excludes suggestions, or requests a narrow scope such as `security findings only`, do not dispatch `code-simplifier`; record `code-simplifier: skipped-user-scope`.
      - Treat simplifier output as `suggestion` material only, then validate it before aggregation.
-     - If the simplifier returns no findings, preserve the empty pass result so the final report proves the agent was not skipped.
+     - If the simplifier returns no findings, preserve the empty pass result in the ledger so the final report proves the agent was not skipped.
 
 12. Aggregate validated results.
      - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
@@ -243,7 +249,8 @@ Plan rules:
 ## Fallback Rules
 
 - If triage says not to proceed, stop immediately only when there is no reviewable diff or changed-code surface, the explicit target cannot be resolved, or the request is not actually a review request.
-- If no specialist pass activates, run `code-reviewer`, plus `agents-md-auditor` when compliance context applies, then run `code-simplifier` as the second wave when no validated `critical` blockers remain.
+- If no specialist pass activates, run `code-reviewer`, plus `agents-md-auditor` when compliance context applies. Then run `code-simplifier` as the second wave when no validated `critical` blockers remain and the user did not exclude suggestions.
+- If specialist passes do activate, still run `code-simplifier` as the second wave under the same safe conditions; it is not only a fallback pass.
 - If the request names explicit passes, honor that narrower scope unless triage blocks review.
 - If the request says `all`, run all conditionally applicable passes, not every reference file blindly.
 - If authenticated `gh` is unavailable, prefer MCP-provided PR metadata or payloads before local diff fallback.
@@ -254,7 +261,7 @@ Plan rules:
 - If a pass returns no findings, continue with the remaining stages.
 - If validation dismisses every candidate finding, skip dismissed items and return a clean review summary.
 - If multiple passes report the same issue with different labels, preserve original labels for attribution and let validation plus aggregation determine the final merged level.
-- If simplification was requested or broad review would normally require polish but blocker-level findings remain, skip `code-simplifier` and report why in the pass ledger.
+- If simplification should run but blocker-level findings remain or user scope excludes suggestions, skip `code-simplifier` and report why in the pass ledger.
 
 ## Guardrails
 
