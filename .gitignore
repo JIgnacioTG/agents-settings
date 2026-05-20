@@ -73,6 +73,7 @@ docs/_build/
 
 # Oh my openagent
 .sisyphus/
+.omo/
 
 # Superpowers
 docs/plans/

@@ -9,8 +9,8 @@ Use this skill for frontend validation that needs visual proof, especially Playw
 
 ## Evidence Folder
 
-- Store agent-generated evidence under `.sisyphus/evidence/` because this repository convention is local-only and gitignored.
-- Use a scoped subfolder such as `.sisyphus/evidence/<change-or-session>/screenshots/` for intentional screenshots.
+- Store agent-generated evidence under `.omo/evidence/` because this repository convention is local-only and gitignored.
+- Use a scoped subfolder such as `.omo/evidence/<change-or-session>/screenshots/` for intentional screenshots.
 - Keep filenames ordered and descriptive, for example `01-before-ui-change.png`, `02-after-ui-change.png`, `03-success-message.png`, or `04-error-message.png`.
 
 ## Required Evidence
@@ -33,13 +33,13 @@ await page.screenshot({ path: screenshotPath, fullPage: true });
 await testInfo.attach('dashboard-loaded', { path: screenshotPath, contentType: 'image/png' });
 ```
 
-- Configure Playwright projects that need agent evidence with an artifact root under `.sisyphus/evidence`, for example `outputDir: '.sisyphus/evidence/playwright'`.
+- Configure Playwright projects that need agent evidence with an artifact root under `.omo/evidence`, for example `outputDir: '.omo/evidence/playwright'`.
 - Keep diagnostic artifacts enabled when useful: `screenshot: 'only-on-failure'`, `trace: 'on-first-retry'`, and `video: 'retain-on-failure'`.
 - Use Playwright's HTML report as the human-facing evidence index when available.
 
 ## Manual Browser Validation Contract
 
-- If validation uses browser automation outside a Playwright test file, still save screenshots under `.sisyphus/evidence/<change-or-session>/screenshots/`.
+- If validation uses browser automation outside a Playwright test file, still save screenshots under `.omo/evidence/<change-or-session>/screenshots/`.
 - Capture meaningful states, not just the final screen: before action, after important transitions, the changed UI state, and any success or error messages relevant to the tested behavior.
 - Prefer full-page screenshots for layout/regression checks and viewport screenshots for focused interactions.
 
