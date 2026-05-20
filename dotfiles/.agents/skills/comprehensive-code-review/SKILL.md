@@ -42,18 +42,16 @@ If command text and this skill ever conflict, follow this skill. The command mus
 This skill is an orchestration process, not a single-pass checklist. Every activated role must run as a delegated agent pass with its reference profile loaded before dispatch.
 
 - Load the relevant reference file immediately before preparing that pass prompt. Do not rely on memory of the profile.
-- Dispatch every activated OpenCode pass through `task(...)` with the mapped `category`, `load_skills=[]`, explicit `run_in_background` behavior, and the relevant reference profile content copied into that pass prompt. Do not use `subagent_type` for review passes because direct OpenCode subagents bypass Oh My OpenAgent category/model routing.
+- Dispatch every activated OpenCode pass through `task(...)` with the mapped `category`, `load_skills=[]`, explicit `run_in_background` behavior, and the relevant reference profile content copied into that pass prompt. First-wave review passes use `run_in_background=true`; dependent validation, aggregation, and any grouped second-wave passes use `run_in_background=false`. Preserve parallelism in second-wave work by issuing multiple synchronous `task(..., run_in_background=false)` calls in the same tool turn or parallel tool batch, then wait for every returned result before continuing. Do not use `subagent_type` for review passes because direct OpenCode subagents bypass Oh My OpenAgent category/model routing.
 - Do not merge multiple role profiles into one generic reviewer. Separate agents preserve independent failure modes and reduce skipped checks. A broad comprehensive review that only ran `code-reviewer` is incomplete unless triage explicitly narrowed the request to general bug review only.
-- Preserve each pass result, including empty results, outside the principal chat context when possible, so the final report can show which mandatory passes ran and why any conditional pass did not run without forcing every raw transcript through the principal agent.
+- Preserve each pass result, including empty results, outside the principal chat context when possible, so the final report can show which mandatory passes ran and why any conditional pass did not run without forcing every raw transcript through the principal agent. For synchronous second-wave passes, capture the returned task output immediately in the ledger because there is no background handle to recover later.
 - Keep the principal context compact by maintaining a durable normalized review ledger
   immediately after every dispatch: pass name, category, `background_task_id`,
   `session_id`, status, activation reason, skip/not-run reason, finding IDs,
   severity, confidence, evidence pointers, and PR comment/thread IDs. Store raw
   pass outputs and bulky PR context in files or task transcripts; feed later
   stages the normalized ledger plus only the evidence slices they need.
-- Treat the ledger's `background_task_id` and `session_id` as the only source of
-  truth for launched passes. Never rely on memory of task handles, prose
-  summaries, or later session search to decide whether a pass already ran.
+- Treat the ledger's dispatch metadata as the only source of truth for launched passes. For background first-wave rows, store `background_task_id` and `session_id`; for synchronous second-wave rows, store `run_in_background=false`, completion status, and the returned output. Never rely on memory of task handles, prose summaries, or later session search to decide whether a pass already ran.
 - Do not pre-compact review evidence before specialist passes. Each activated pass should receive the raw review surface needed for its role, such as the relevant diff, changed files, PR metadata, failing CI data, unresolved comments, and applicable `AGENTS.md` rules, with concise scope boundaries rather than lossy principal-agent summaries.
 - If a required pass cannot run because tooling is unavailable, record it as `not-run` with the concrete reason instead of silently skipping it.
 
@@ -61,10 +59,9 @@ This skill is an orchestration process, not a single-pass checklist. Every activ
 
 Every review wave must be recoverable without launching duplicate agents.
 
-- Immediately after each `task(..., run_in_background=true)` dispatch, copy both
-  identifiers from the tool result into the ledger: `background_task_id` and
-  `session_id`. Do this before dispatching dependent validation, simplification,
-  or aggregation work.
+- Immediately after each first-wave `task(..., run_in_background=true)` dispatch, copy both identifiers from the tool result into the ledger: `background_task_id` and `session_id`. Do this before dispatching dependent validation, simplification, or aggregation work.
+- Dispatch dependent second-wave passes with `run_in_background=false`. This applies to `validator-agent`, `aggregator-agent`, and any split/grouped validation or aggregation pass. Synchronous calls return their output directly, so record the output and status in the ledger immediately and do not call `background_output` or session recovery for those rows.
+- Preserve the parallel wave shape for second-wave work without background handles: when multiple validation or aggregation groups are needed, issue those synchronous `task(..., run_in_background=false)` calls together in one parallel tool batch. Treat the whole batch as the wave boundary and wait for every returned output before aggregation or final reporting. Do not advance with partial second-wave results.
 - Before collecting a wave, read the ledger and call `background_output` exactly
   once per recorded `background_task_id` after completion notification. Attach
   the returned raw output or empty-result marker to that ledger row.
@@ -84,9 +81,7 @@ Every review wave must be recoverable without launching duplicate agents.
   `background_task_id`, or fill a missing transcript. Rerun only when the review
   surface changed or the previous pass explicitly failed before producing any
   usable result; record the original failed row and the new row separately.
-- Validation, simplification, and aggregation must consume the ledger's collected
-  or session-recovered first-wave results. They must not trigger first-wave
-  agents again.
+- Validation and aggregation must consume the ledger's collected or session-recovered first-wave results. They must not trigger first-wave agents again. Because they are synchronous second-wave passes, their returned outputs become the ledger entries for later steps without async recovery.
 - Do not write fallback language such as "task handles expired, so I am
   rerunning". Expired handles require session recovery or an explicit
   `not-run:lost-output` ledger entry, never duplicate execution.
@@ -180,7 +175,7 @@ Every review wave must be recoverable without launching duplicate agents.
 9. Dispatch passes in waves.
    - First wave: run `code-reviewer`, `code-simplifier`, optional `agents-md-auditor`, activated `ci-check-analyzer`, and all activated specialist passes in parallel.
    - Keep each pass scoped to the requested diff or changed-code surface only.
-   - For each dispatched pass, immediately record the returned
+   - For each first-wave dispatched pass, immediately record the returned
      `background_task_id` and `session_id` in the durable pass ledger before
      moving to the next stage.
    - Preserve raw outputs, cited evidence, and pass attribution in the raw-output store or task transcripts. Keep the principal-agent working set to the normalized ledger plus concise evidence pointers.
@@ -190,7 +185,7 @@ Every review wave must be recoverable without launching duplicate agents.
    - Collect first-wave results from the durable pass ledger. If a background
      handle is unavailable, recover from the recorded `session_id`; do not rerun
      the first-wave pass.
-   - Send non-empty first-wave findings and simplifier suggestions to `./references/validator-agent.md`.
+   - Send non-empty first-wave findings and simplifier suggestions to `./references/validator-agent.md` with `task(..., run_in_background=false)`. If the review was split into multiple validation groups, dispatch every validator call synchronously in the same parallel tool batch and wait for all returned outputs before continuing.
    - The validator may validate, adjust severity with evidence, or dismiss existing findings only; it must not create new findings.
    - Drop dismissed items and all findings below the validator confidence threshold defined in the validator profile.
    - Preserve source-pass attribution for every surviving item.
@@ -201,7 +196,7 @@ Every review wave must be recoverable without launching duplicate agents.
    - If the simplifier cannot run because tooling is unavailable, record `code-simplifier: not-run:<reason>` in the pass ledger.
 
 12. Aggregate validated results.
-   - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md`.
+   - Send only validated findings, validated simplifier suggestions, pass ledger entries, and explicit strengths to `./references/aggregator-agent.md` with `task(..., run_in_background=false)`. If aggregation is split by group, dispatch the synchronous aggregator calls together in a parallel tool batch and wait for every returned result before final synthesis. Do not dispatch aggregation as a background task; the final report depends on its returned output in the current turn.
    - Let the aggregator deduplicate materially identical findings, keep the strongest supported final severity, preserve attribution, and keep strengths separate.
    - Include ledger recovery status for every pass, including `ran`,
      `recovered-from-session:<session_id>`, `skipped:<reason>`, and
