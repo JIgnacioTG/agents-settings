@@ -34,14 +34,14 @@ opencode-sync-mcp-auth-devcontainer --root "<workspace-folder>/.devcontainer-per
 
 If sync fails because no matching remote MCP auth exists, report it as a warning but do not treat the devcontainer run as failed.
 
-Finally, use the `openchamber-week-link` skill to output the one-week OpenChamber link for each selected project's port:
+Finally, use the `openchamber-week-link` skill to output a tokenized 24-hour OpenChamber connect/access link for each selected project's port, backed by a one-week tunnel session. The returned link must be the connect/access URL from OpenChamber JSON output, not the bare public URL. Do not request a connect-link TTL longer than 24 hours:
 
 | Project | OpenChamber port |
 | --- | --- |
 | Reserhub Revenue Full | `4098` |
 | Adara CRM | `4099` |
 
-When both projects are selected, sync MCP auth and generate OpenChamber links in parallel after each selected devcontainer is ready.
+When both projects are selected, sync MCP auth and generate tokenized 24-hour OpenChamber connect/access links in parallel after each selected devcontainer is ready.
 
 ## Final response
 
@@ -49,7 +49,7 @@ Report:
 
 - Which project(s) were started.
 - Whether MCP auth sync succeeded or warned.
-- The one-week OpenChamber link(s), labeled by project.
+- The 24-hour OpenChamber connect/access link(s), labeled by project, including the embedded access token in each URL and noting that each link is backed by a one-week tunnel session.
 - Any command that failed, including the failing project.
 
 ## Examples
