@@ -45,6 +45,9 @@ OBSOLETE_PATHS=(
     ".cursor/skills/review-pr"
     ".cursor/commands/code-review.md"
     ".cursor/commands/review-pr.md"
+    ".agents/skills/devcontainer-down"
+    ".agents/skills/devcontainer-rebuild"
+    ".agents/skills/devcontainer-run"
 )
 
 is_skill_path() {
