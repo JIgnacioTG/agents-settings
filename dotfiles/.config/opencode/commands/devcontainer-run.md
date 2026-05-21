@@ -4,8 +4,6 @@ description: Run Reserhub and/or Adara devcontainers and output OpenChamber link
 
 # Run Devcontainer(s)
 
-Use the `devcontainer-run` skill.
-
 **Arguments:** "$ARGUMENTS"
 
 ## Behavior
@@ -16,6 +14,7 @@ Use the `devcontainer-run` skill.
 - With a project argument, run only that project.
 - Accepted project keys: `reserhub`, `reserhub-revenue`, `reserhub-revenue-full`, `adara`, `adara-crm`.
 - Forward extra arguments to `bunx @devcontainers/cli up`.
+- If an unknown project is specified, stop and ask for the exact project key. Do not guess.
 
 ## Commands
 
@@ -33,9 +32,25 @@ Then sync MCP auth:
 opencode-sync-mcp-auth-devcontainer --root "<workspace-folder>/.devcontainer-persistent"
 ```
 
-Finally, use the `openchamber-week-link` skill to output the one-week OpenChamber link for each selected project.
+If sync fails because no matching remote MCP auth exists, report it as a warning but do not treat the devcontainer run as failed.
+
+Finally, use the `openchamber-week-link` skill to output the one-week OpenChamber link for each selected project's port:
+
+| Project | OpenChamber port |
+| --- | --- |
+| Reserhub Revenue Full | `4098` |
+| Adara CRM | `4099` |
 
 When both projects are selected, sync MCP auth and generate OpenChamber links in parallel after each selected devcontainer is ready.
+
+## Final response
+
+Report:
+
+- Which project(s) were started.
+- Whether MCP auth sync succeeded or warned.
+- The one-week OpenChamber link(s), labeled by project.
+- Any command that failed, including the failing project.
 
 ## Examples
 
