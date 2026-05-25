@@ -24,6 +24,9 @@ Run the canonical `comprehensive-code-review` workflow against someone else's Gi
 ## PR review decision
 
 - Write every PR comment in Spanish.
+- Keep every posted PR comment concise: state only the issue and the suggested fix.
+- Prefer a small replacement snippet when it makes the fix clearer.
+- Do not include extended technical analysis, pass attribution, evidence trails, or broad rationale in posted PR comments.
 - Post validated findings as PR comments when they have a stable PR comment target.
 - Normally grant PR approval after posting comments.
 - Request changes instead of approving only when a critical bug is found.

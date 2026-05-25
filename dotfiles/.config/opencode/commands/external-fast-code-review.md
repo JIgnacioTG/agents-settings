@@ -35,6 +35,9 @@ Review only the GitHub PR diff. Keep the review fast and focused on:
 ## PR review decision
 
 - Write every PR comment in Spanish.
+- Keep every posted PR comment concise: state only the issue and the suggested fix.
+- Prefer a small replacement snippet when it makes the fix clearer.
+- Do not include extended technical analysis, pass attribution, evidence trails, or broad rationale in posted PR comments.
 - Post validated findings as PR comments when they have a stable PR comment target.
 - Normally grant PR approval after posting comments.
 - Request changes instead of approving only when a critical bug is found.
@@ -61,5 +64,7 @@ For each finding include:
 - A concrete solution.
 - PR comment target metadata when available.
 - Whether a Spanish PR comment was posted.
+
+Keep the final report detailed enough for traceability, but keep posted PR comment bodies limited to the issue and suggested fix/snippet.
 
 If there are no validated findings, say so directly, include any meaningful strengths, and approve the PR. Keep weak or non-actionable smells in `smells not commented` instead of posting them.
