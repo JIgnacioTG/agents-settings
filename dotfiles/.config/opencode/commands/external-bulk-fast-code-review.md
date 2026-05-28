@@ -18,13 +18,17 @@ Discover open GitHub PRs for the current repository where the current GitHub use
    - `approved by us` when the latest non-dismissed review by the current login is `APPROVED`.
    - `reviewed by us` when the latest non-dismissed review by the current login is `COMMENTED`, `CHANGES_REQUESTED`, or another non-approval review state.
    - `not reviewed by us` when no review by the current login exists.
-6. Show a compact selection table including PR number, author, draft status, title, URL, GitHub `reviewDecision`, and our previous review state.
+6. Sort remaining PRs in this priority order: `not reviewed by us`, then `reviewed by us`, then `approved by us`.
+7. Show a compact selection table including PR number, author, draft status, title, URL, GitHub `reviewDecision`, and our previous review state.
+8. Always return the table as normal assistant output before asking any selectable question. Never put the table or table rows inside the question text or selectable options.
 
 ## Selection
 
 - If `$ARGUMENTS` includes PR numbers, review only those PRs after confirming they are open and not authored by the current GitHub login.
 - If `$ARGUMENTS` includes `--all`, review every discovered eligible PR.
-- Otherwise, ask the user to select PR numbers from the table. Do not start review agents until the selection is known.
+- Otherwise, after showing the table, ask the user to select PR numbers from options ordered by the same priority: `not reviewed by us`, then `reviewed by us`.
+- Treat `not reviewed by us` and `reviewed by us` as the primary selectable group. Skip `approved by us` PRs from the default options unless the user explicitly asks to include approved PRs or names those PR numbers.
+- Do not start review agents until the selection is known.
 - If no eligible PRs exist, say so and stop.
 
 ## Review path per selected PR
