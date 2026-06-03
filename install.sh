@@ -36,6 +36,12 @@ OBSOLETE_PATHS=(
     ".cursor/skills/executing-grouped-tasks/SKILL.md"
     ".cursor/agents/implementation-agent-fast.md"
     ".agents/skills/code-review"
+    ".agents/skills/comprehensive-code-review"
+    ".agents/skills/e2e-evidence"
+    ".agents/skills/feedback-learning-review"
+    ".agents/skills/learning-artifact-planner"
+    ".agents/skills/openchamber-week-link"
+    ".agents/skills/openspec-workflow"
     ".agents/skills/review-pr"
     ".agents/skills/solving-comprehensive-code-review"
     ".config/opencode/commands/code-review.md"
@@ -48,11 +54,22 @@ OBSOLETE_PATHS=(
     ".agents/skills/devcontainer-down"
     ".agents/skills/devcontainer-rebuild"
     ".agents/skills/devcontainer-run"
+    ".config/opencode/commands/devcontainer-update-dependencies.md"
+    ".config/opencode/commands/external-bulk-fast-code-review.md"
+    ".config/opencode/commands/external-comprehensive-code-review.md"
+    ".config/opencode/commands/external-fast-code-review.md"
 )
 
-is_skill_path() {
+EMPTY_CONFIG_DIRS=(
+    ".agents/skills"
+    ".config/opencode/commands"
+    ".cursor/commands"
+    ".cursor/skills"
+)
+
+is_skill_or_command_path() {
     local relative_path="$1"
-    [[ "$relative_path" == .agents/skills/* ]]
+    [[ "$relative_path" == .agents/skills/* || "$relative_path" == .config/opencode/commands/* || "$relative_path" == .cursor/commands/* || "$relative_path" == .cursor/skills/* ]]
 }
 
 is_correct_symlink() {
@@ -133,6 +150,19 @@ cleanup_obsolete_paths() {
     done
 }
 
+ensure_empty_config_dirs() {
+    local relative_path
+
+    for relative_path in "${EMPTY_CONFIG_DIRS[@]}"; do
+        local target_path="${HOME_CONFIG}/${relative_path}"
+
+        if [[ ! -d "$target_path" ]]; then
+            print_action "Creating directory: ${target_path}"
+            mkdir -p "$target_path"
+        fi
+    done
+}
+
 process_dotfile() {
     local relative_path="$1"
     local source_path="${DOTFILES_DIR}/${relative_path}"
@@ -166,35 +196,6 @@ process_dotfile() {
     print_success "Created symlink: ${target_path} -> ${source_path}"
 }
 
-process_skill() {
-    local skill_name="$1"
-    local relative_path=".agents/skills/${skill_name}"
-    local source_path="${DOTFILES_DIR}/${relative_path}"
-    local target_path="${HOME_CONFIG}/${relative_path}"
-
-    print_info "Processing skill: ${relative_path}"
-
-    if [[ ! -d "$source_path" ]]; then
-        print_error "Skill source not found: ${source_path}"
-        return 1
-    fi
-
-    local parent_dir
-    parent_dir="$(dirname "$target_path")"
-    if [[ ! -d "$parent_dir" ]]; then
-        print_action "Creating directory: ${parent_dir}"
-        mkdir -p "$parent_dir"
-    fi
-
-    if [[ -e "$target_path" || -L "$target_path" ]]; then
-        backup_path "$target_path" "$relative_path"
-        remove_target "$target_path"
-    fi
-
-    cp -R "$source_path" "$target_path"
-    print_success "Copied skill directory: ${target_path}"
-}
-
 main() {
     echo -e "${BOLD}${CYAN}"
     echo "============================================"
@@ -214,25 +215,14 @@ main() {
     echo ""
 
     cleanup_obsolete_paths
+    ensure_empty_config_dirs
 
     local errors=0
     local processed=0
 
-    if [[ -d "${DOTFILES_DIR}/.agents/skills" ]]; then
-        while IFS= read -r -d '' skill_dir; do
-            skill_name="$(basename "$skill_dir")"
-            if process_skill "$skill_name"; then
-                ((processed++)) || true
-            else
-                ((errors++)) || true
-            fi
-            echo ""
-        done < <(find "${DOTFILES_DIR}/.agents/skills" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
-    fi
-
     while IFS= read -r -d '' file; do
         relative_path="${file#${DOTFILES_DIR}/}"
-        if is_skill_path "$relative_path"; then
+        if is_skill_or_command_path "$relative_path"; then
             continue
         fi
         if process_dotfile "$relative_path"; then

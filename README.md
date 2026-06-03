@@ -1,20 +1,21 @@
 # agents-settings
 
-Custom agent settings, used across my machines (linux-mac)
+Custom AGENTS, CLAUDE, and agent config settings, used across my machines (linux-mac).
 
 ## Install
 
-`install.sh` symlinks regular dotfiles and copies `.agents/skills/*` as real directories so Codex can discover installed skills reliably from `~/.agents/skills`.
+`install.sh` symlinks regular dotfiles and recreates empty skill/command directories when needed. This repo no longer owns installed skills or command definitions.
 
 ## Layout after install
 
 | Tool | Location |
 |------|----------|
-| Codex skills | `~/.agents/skills/` (copied) |
+| Codex skills | `~/.agents/skills/` (empty directory managed only as a placeholder) |
 | OpenCode | `~/.config/opencode/` (symlinked files from `dotfiles/.config/opencode/`) |
-| Cursor | `~/.cursor/agents/`, `~/.cursor/commands/`, `~/.cursor/skills/`, `~/.cursor/rules/`, `~/.cursor/AGENTS.md` (symlinked from `dotfiles/.cursor/`) |
+| Cursor | `~/.cursor/agents/`, `~/.cursor/rules/`, `~/.cursor/AGENTS.md` (symlinked from `dotfiles/.cursor/`) plus empty `commands/` and `skills/` placeholders |
+| Claude | `~/.claude/CLAUDE.md` and Claude config files from `dotfiles/.claude/` |
 
-Shared grouped execution skills live only under `~/.agents/skills/`. OpenCode and Cursor no longer keep duplicated `grouped-tasks` or `executing-grouped-tasks` copies.
+AGENTS and CLAUDE files stay symlinked and are the primary focus of this repository alongside shared config files. Skills and commands should be installed or managed outside this repo.
 
 ### Cursor: user rules vs `AGENTS.md`
 
